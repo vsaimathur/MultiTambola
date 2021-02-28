@@ -1,0 +1,20 @@
+{
+  "name": "multi-tambola",
+  "version": "1.0.0",
+  "description": "An Application which is made for ease of use for player who want to play instant RealTime Multiplayer Tambola Game",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "client": "cd client && npm run start",
+    "dev": "concurrently \"nodemon index.js\" \"npm run client\""
+  },
+  "author": "Mathur",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "concurrently": "^6.0.0",
+    "nodemon": "^2.0.7"
+  }
+}
