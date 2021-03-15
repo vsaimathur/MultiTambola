@@ -1,1 +1,36 @@
 * {margin: 0%; padding: 0%; box-sizing: border-box; font-family: "Comic Sans MS";}
+
+.total{
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    height: 100%;
+}
+
+.center-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-maker-buttons {
+    border : 2px solid red;
+    padding: 10vh;
+}
+
+#create-room-button {
+    width: 35vh;
+}
+
+#join-room-button {
+    width: 35vh;
+}
+
+.footer {
+    margin-top: auto;
+}

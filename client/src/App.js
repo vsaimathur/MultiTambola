@@ -1,21 +1,31 @@
-function App() {
+import Header from './Header';
+import Footer from './Footer';
+import Home from './Home';
+import Rules from './Rules';
+import Support from './Support';
+import Play from './Play';
+import CreateNewRoom from './CreateNewRoom';
+import JoinRoom from './JoinRoom';
+import {BrowserRouter as Router,Switch,Route} from 'react-router-dom';
+import './index.css';
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={"#"} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="total">
+        <Header />
+        <div className="main-content">
+            <Switch>
+                <Route exact path = "/" component = {Home}/>
+                <Route exact path = "/rules" component = {Rules}/>
+                <Route exact path = "/support" component = {Support}/>
+                <Route exact path = "/play" component = {Play}/>
+                <Route exact path = "/createnewroom" component = {CreateNewRoom}/>
+                <Route exact path = "/joinroom" component = {JoinRoom}/>
+            </Switch>
+        </div>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
