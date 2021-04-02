@@ -6,6 +6,7 @@ import Support from './Support';
 import Play from './Play';
 import CreateNewRoom from './CreateNewRoom';
 import JoinRoom from './JoinRoom';
+import GameRoom from './GameRoom';
 import {BrowserRouter as Router,Switch,Route} from 'react-router-dom';
 import './index.css';
 const App = () => {
@@ -21,6 +22,7 @@ const App = () => {
                 <Route exact path = "/play" component = {Play}/>
                 <Route exact path = "/createnewroom" component = {CreateNewRoom}/>
                 <Route exact path = "/joinroom" component = {JoinRoom}/>
+                <Route exact path = "/gameroom" component = {GameRoom}/>
             </Switch>
         </div>
         <Footer />
