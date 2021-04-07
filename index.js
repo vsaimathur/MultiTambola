@@ -3,6 +3,7 @@ var roomSockets = {} // {roomNo : [socket1ID,socket2ID]}
 var socketRoom = {} // {socketID : RoomID}
 var socketNames = {} //{socketID : Name}
 var socketNoTickets = {} // {socketID : noTickets}
+var roomsAvailable = [] // [room1, room2, room3]
 var randomRoomID = null;
 
 var CLIENT_URL = process.env.CLIENT_URL || "localhost:3000"
@@ -27,7 +28,7 @@ const io = socket_io(server, {
     }
 });
 
-//This funtion returns a list which contains the names of all the players in that room.
+//This funtion returns a list which contains the names of all the players in that room. [***Can be improved by creating a global variable]
 const getRoomPlayers = (data) => {
     let roomPlayerNames = []
     
@@ -41,18 +42,36 @@ const getRoomPlayers = (data) => {
 io.on("connection", (socket) => {
     console.log("new socket created with ID : ", socket.id);
 
+    //Whenever a new socket/ player enters the website we emit the live rooms available in the game to the client socket/player.
+    io.emit("LIVE_ROOMS_AVAILABLE", {
+        liveRoomsAvailable : roomsAvailable
+    })
+
     //It takes host player info. ,creates a new room, joins this host in that room & 
     //emits the randomly generated ROOM_ID to the host player/socket only.
     socket.on("CREATE_ROOM_ID", (data) => {
+
+        //random roomID generation
         randomRoomID = ((Math.floor(Math.random() * 1000000) + 1000000) % 1000000).toString();
+
         roomSockets[randomRoomID] = [socket.id]
         socketRoom[socket.id] = randomRoomID;
         socketNames[socket.id] = data.hostName;
         socketNoTickets[socket.id] = data.noTickets;
+        roomsAvailable.push(randomRoomID);
+
+        //joining the host socket to created room.
         socket.join(randomRoomID);
+
+        //emits the generated roomID to host socket.
         io.to(socket.id).emit("ROOM_ID_GENERATED", {
-            roomID: randomRoomID
+            roomID: roomsAvailable
         });
+    
+        //we again emit the (updated live rooms available list) to all the clients as new room is added to the list.
+        io.emit("LIVE_ROOMS_AVAILABLE", {
+            liveRoomsAvailable : roomsAvailable
+        })
         // console.log(roomSockets,socketRoom,socketNames,socketNoTickets);
     })
 
@@ -101,9 +120,9 @@ server.listen(PORT, () => {
 
 //**TODO */
 
+//need to disable input are submitting player info. to server in CreateNewRoom.js & JoinRoom.js [✔]
+//need to check if entered room exists or not in JoinRoom.js page. [✔]
 //need to write logic for handleGameStartButton in CreateNewRoom.js
-//need to disable input are submitting player info. to server in CreateNewRoom.js & JoinRoom.js
-//need to check if entered room exists or not in JoinRoom.js page.
 
 //** Problems & Temp Sol'n: */
 

@@ -14,6 +14,12 @@ const CreateNewRoom = () => {
     const [currentlyJoinedRoomCount, setCurrentlyJoinedRoomCount] = useState(0);
     const [roomPlayerNames, setRoomPlayerNames] = useState([]);
 
+    //useRef variables
+
+    //for accessing name & select option (noTickets) elements to disabled them after infoFilledStatus -> true
+    let noTicketsRef = useRef();
+    let nameRef = useRef();
+
     //mutable variable which updates itself with state. (not very clear) 
     let roomIDRef = useRef();
 
@@ -23,6 +29,8 @@ const CreateNewRoom = () => {
     const handleGenerateRoomIDButton = () => {
         if (name === "") return false;
         setInfoFilledStatus(true);
+        nameRef.current.disabled = true;
+        noTicketsRef.current.disabled = true;
     }
 
     //This handles the start of game
@@ -44,10 +52,18 @@ const CreateNewRoom = () => {
         setRoomPlayerNames(data.roomPlayerNames)
     }
 
-    //This useEffect emits the details of host player if details are entered & gets the roomID generated from server by listening 
+    //This useEffect listens to roomPlayerNames list updates (if a new player joins the room. handleRoomPlayerNames fires & it
+    //updates our/ client copy of roomPlayerNames List)
+
+    //This useEffect also emits the details of host player if details are entered & gets the roomID generated from server by listening 
     //to ROOM_ID_GENERATED EVENT.
+
     useEffect(() => {
+        
+        socket.on("ROOM_PLAYER_NAMES", handleRoomPlayerNames);
+
         if(infoFilledStatus) {
+            socket.on("ROOM_PLAYER_NAMES", handleRoomPlayerNames);
             socket.emit("CREATE_ROOM_ID", {
                 hostName : name,
                 noTickets
@@ -56,17 +72,14 @@ const CreateNewRoom = () => {
         socket.on("ROOM_ID_GENERATED", handleRoomIDGenerated);
 
 
-        return () => socket.off("ROOM_ID_GENERATED", handleRoomIDGenerated);
+        return () => {
+            socket.off("ROOM_ID_GENERATED", handleRoomIDGenerated);
+            socket.off("ROOM_PLAYER_NAMES", handleRoomPlayerNames);
+        }
+
     }, [socket, infoFilledStatus, noTickets])
 
-    //This useEffect listens to roomPlayerNames list updates (if a new player joins the room. handleRoomPlayerNames fires & it
-    //updates our/ client copy of roomPlayerNames List)
-    useEffect(() => {
 
-        socket.on("ROOM_PLAYER_NAMES", handleRoomPlayerNames);
-
-        return () => socket.off("ROOM_PLAYER_NAMES", handleRoomPlayerNames);
-    }, [socket])
 
     //This useEffect updates the currentlyJoinedRoomCount whenever roomPlayerNames list is updated. 
     useEffect(() => {
@@ -79,12 +92,12 @@ const CreateNewRoom = () => {
 
             <label htmlFor="host-name">Enter your name : </label>
             <br />
-            <input type="text" name="host-name" id="host-name" value={name} onChange={(event) => setName(event.target.value)} />
+            <input ref = {nameRef} type="text" name="host-name" id="host-name" value={name} onChange={(event) => setName(event.target.value)} />
             <br />
             <br />
             <label htmlFor="noTickets">Select Number of Tickets : </label>
             <br />
-            <select name="noTickets" id="noTickets" onChange={(event) => setNoTickets(event.target.value)} required >
+            <select ref = {noTicketsRef} name="noTickets" id="noTickets" onChange={(event) => setNoTickets(event.target.value)} required >
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
