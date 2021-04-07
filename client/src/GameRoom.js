@@ -1,12 +1,18 @@
-import useSocket from "./useSocket";
+import {SocketContext} from "./Socket";
+import { useContext, useEffect } from "react";
 
 const GameRoom = () => {
-    const {testMsg,sendMessage} = useSocket();
 
+    const socket = useContext(SocketContext)
+
+    useEffect(() => {
+        socket.emit("GAME_START");
+
+    }, [socket])
     return (
         <>
-            <p>This is the msg by server : </p>
+            <p>Game Page!</p>
         </>);
     }
 
-export default GameRoom;
+export default GameRoom;    

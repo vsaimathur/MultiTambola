@@ -1,3 +1,5 @@
+// This is not used it's just for reference
+
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
