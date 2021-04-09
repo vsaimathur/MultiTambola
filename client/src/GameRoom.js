@@ -6,8 +6,7 @@ const GameRoom = () => {
     const socket = useContext(SocketContext)
 
     useEffect(() => {
-        socket.emit("GAME_START");
-
+        
     }, [socket])
     return (
         <>

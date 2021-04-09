@@ -16,8 +16,9 @@ const JoinRoom = () => {
     const [playerName, setPlayerName] = useState("");
     const [infoFilledStatus, setInfoFilledStatus] = useState(false);
     const [roomPlayerNames, setRoomPlayerNames] = useState([]);
-    const [liveRoomsAvailable, setLiveRoomsAvailable] = useState([]);
-    const [roomAvailableStatus, setRoomAvailableStatus] = useState(null);
+    const [currentlyJoinedRoomCount, setCurrentlyJoinedRoomCount] = useState(0);
+    const [roomJoinedStatus, setRoomJoinedStatus] = useState(null);
+
 
     //useRef Variables
 
@@ -28,46 +29,45 @@ const JoinRoom = () => {
 
     //button/click handlers
 
-    //on clicking join button it changes the state of infoFilledStatus to true if roomID is entered correctly & 
-    //playerName also entered correctly.
-
-    const getRoomAvailableStatus = (roomID) => {
-        for(let i=0;i<liveRoomsAvailable.length;i++) {
-            if(liveRoomsAvailable[i] === roomID.toString().trim()) return true;
-        }
-        return false;
-    }
-
+    //on clicking join button it changes the state of infoFilledStatus to true
     const onFilledHandler = (event) => {
         event.preventDefault();
-        console.log(liveRoomsAvailable);
-        let roomAvailStatusCheck = getRoomAvailableStatus(roomID);
-        console.log(roomAvailStatusCheck);
-        setRoomAvailableStatus(roomAvailStatusCheck ? true : false);
-        if (roomID < 100000 || roomID > 9999999 || !roomID || playerName.trim() === "" || !roomAvailStatusCheck) {
-            setInfoFilledStatus(false);
-            return false;
-        }
         setInfoFilledStatus(true);
-        playerNameRef.current.disabled = true;
-        noTicketsRef.current.disabled = true;
-        roomIDElementRef.current.disabled = true;
     }
 
     //listener handlers
 
-    //redirects when join request is acknowledged by server
-    const handleJoinAck = () => {
+
+    //gets the acknowledgement of joining room & also gets player names in that room.
+    const handleJoinedAckPlayerRoomNames = (data) => {
+        if (data.status === 404) {
+            setRoomJoinedStatus(false);
+            
+            // for useEffect Hook to emit JOIN_REQ event again
+            setInfoFilledStatus(false);
+        } else {
+            setRoomJoinedStatus(true);
+
+            //Disabling the inputs in the client window so that he would'nt change the info. again.
+            playerNameRef.current.disabled = true;
+            noTicketsRef.current.disabled = true;
+            roomIDElementRef.current.disabled = true;
+
+            setRoomPlayerNames(data.roomPlayerNames)
+        }
+
+    }
+
+    //redirects when game is started by host.
+    const handleStartGameAck = () => {
         history.push("/gameroom");
     }
 
-    const handleLiveRoomsAvailable = (data) => {
-        setLiveRoomsAvailable(data.liveRoomsAvailable);
-    }
 
-    //This useEffect emits the new player info. to server & waits for acknowledgement from the server
+    //This useEffect emits the new player info. to server & waits for acknowledgement, player names in room, & game start signal 
+    //from the server
     useEffect(() => {
-        socket.on("LIVE_ROOMS_AVAILABLE", handleLiveRoomsAvailable);
+
 
         if (infoFilledStatus) {
             socket.emit("JOIN_ROOM_REQ", {
@@ -77,21 +77,27 @@ const JoinRoom = () => {
             })
         }
 
-        socket.on("JOIN_ROOM_ACK", handleJoinAck);
+        socket.on("JOIN_ACK_ROOM_PLAYER_NAMES", handleJoinedAckPlayerRoomNames);
+
+        socket.on("GAME_START_ACK", handleStartGameAck);
 
         return () => {
-            socket.off("JOIN_ROOM_ACK", handleJoinAck);
-            socket.off("LIVE_ROOMS_AVAILABLE", handleLiveRoomsAvailable);
+            socket.off("JOIN_ACK_ROOM_PLAYER_NAMES", handleJoinedAckPlayerRoomNames);
+            socket.off("GAME_START_ACK", handleStartGameAck);
         }
 
-    }, [socket, noTickets, playerName, roomID, infoFilledStatus, history])
+    }, [socket, noTickets, playerName, roomID, infoFilledStatus])
+
+    useEffect(() => {   
+        setCurrentlyJoinedRoomCount(roomPlayerNames.length)
+    }, [roomPlayerNames]);
 
     return (
         <>
             <label htmlFor="room-id">Enter Room ID :</label>
             <br />
             <input ref={roomIDElementRef} type="number" name="room-id" id="room-id" required onChange={(event) => setRoomID(event.target.value)} />
-            {roomAvailableStatus===false && <div className = "text-danger">Room is not available!</div>}  
+            {roomJoinedStatus === false && <div className="text-danger">Room does'nt exist!</div>}
             <br />
             <label htmlFor="player-name">Enter your name : </label>
             <br />
@@ -106,7 +112,10 @@ const JoinRoom = () => {
             </select>
             <br />
             <br />
-            <button type="submit" className="btn btn-primary" name="join" id="join" onClick={onFilledHandler}>Join</button>
+            <button type="submit" className={`btn btn-primary + ${roomJoinedStatus ? "disabled" : ""}`} name="join" id="join" onClick={onFilledHandler}>Join</button>
+
+            {roomJoinedStatus === true && <div className="text-success">Successfully Joined the room! & Waiting for Game To Start!<br /></div>}
+            {roomJoinedStatus === true && <p>Player's Joined : {currentlyJoinedRoomCount - 1 > 0 ? currentlyJoinedRoomCount - 1 : 0}</p>}
         </>);
 }
 
