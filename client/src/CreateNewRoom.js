@@ -1,11 +1,16 @@
 import { useEffect, useState, useRef, useContext } from "react";
 import { useHistory } from "react-router";
-import { SocketContext } from "./Socket";
+import { SocketContext } from "./contexts/Socket";
+import { PlayerNamesContext } from "./contexts/usePlayerNames";
 
 const CreateNewRoom = () => {
 
+    //useContext Var
     //Socket Instance
     const socket = useContext(SocketContext);
+
+    const roomPlayerNames = useContext(PlayerNamesContext);
+
 
     const history = useHistory();
 
@@ -14,10 +19,10 @@ const CreateNewRoom = () => {
     const [roomCreationStatus, setRoomCreationStatus] = useState(false);
     const [infoFilledStatus, setInfoFilledStatus] = useState(false);
     const [noTickets, setNoTickets] = useState(1);
-    const [currentlyJoinedRoomCount, setCurrentlyJoinedRoomCount] = useState(0);
-    const [roomPlayerNames, setRoomPlayerNames] = useState([]);
     const [gameStarted, setGameStarted] = useState(false);
     const [roomIDGen, setRoomIDGen] = useState(null);
+
+
 
     //useRef variables
 
@@ -37,7 +42,7 @@ const CreateNewRoom = () => {
 
     //This handles the start of game
     const handleGameStartButton = () => {
-        if (!roomCreationStatus || currentlyJoinedRoomCount < 2) {
+        if (!roomCreationStatus || roomPlayerNames.length < 2) {
             setGameStarted(false);
             return false;
         }
@@ -55,11 +60,6 @@ const CreateNewRoom = () => {
         console.log(data.roomID);
         setRoomIDGen(data.roomID);
         setRoomCreationStatus(true);
-    }
-
-    //updates roomPlayers list when new player joins the room
-    const handleJoinedAckPlayerRoomNames = (data) => {
-        setRoomPlayerNames(data.roomPlayerNames)
     }
 
     //This useEffect listens to roomPlayerNames list updates (if a new player joins the room. handleJoinedAckPlayerRoomNames fires & it
@@ -80,22 +80,10 @@ const CreateNewRoom = () => {
         }
 
         socket.on("ROOM_ID_GENERATED", handleRoomIDGenerated);
-        socket.on("JOIN_ACK_ROOM_PLAYER_NAMES", handleJoinedAckPlayerRoomNames);
 
-        return () => {
-            socket.off("ROOM_ID_GENERATED", handleRoomIDGenerated);
-            socket.off("JOIN_ACK_ROOM_PLAYER_NAMES", handleJoinedAckPlayerRoomNames);
-        }
+        return () => socket.off("ROOM_ID_GENERATED", handleRoomIDGenerated);
 
     }, [socket, infoFilledStatus, noTickets])
-
-
-
-    //This useEffect updates the currentlyJoinedRoomCount whenever roomPlayerNames list is updated. 
-    useEffect(() => {
-        console.log(roomPlayerNames)
-        setCurrentlyJoinedRoomCount(roomPlayerNames.length)
-    }, [roomPlayerNames]);
 
 
     //gameStarted useEffect which emit's the startGame request from host player
@@ -122,7 +110,7 @@ const CreateNewRoom = () => {
             <select ref={noTicketsRef} name="noTickets" id="noTickets" onChange={(event) => setNoTickets(event.target.value)} required >
                 <option value="1">1</option>
                 <option value="2">2</option>
-                <option value="3">3</option>
+                {/* <option value="3">3</option> */}
             </select>
             <br />
             <br />
@@ -133,10 +121,10 @@ const CreateNewRoom = () => {
             {roomCreationStatus && <p>Share this Room ID with participants & click on start to start the game!</p>}
             <br />
             {/* This displays 0 if no player joined the room & total players in room - 1 if any player joined */}
-            {roomCreationStatus && <p>Player's Joined : {currentlyJoinedRoomCount - 1 > 0 ? currentlyJoinedRoomCount - 1 : 0}</p>}
+            {roomCreationStatus && <p>Player's Joined : {roomPlayerNames.length===0 ? 1 : roomPlayerNames.length}</p>}
 
             {/* This button gets disabled as soon a new room is created by Server */}
-            <button className={`btn btn-primary + ${roomCreationStatus ? "" : "disabled"}`} onClick={handleGameStartButton}>START</button>
+            <button className={`btn btn-primary`} disabled={roomCreationStatus ? false : true} onClick={handleGameStartButton}>START</button>
         </>
     );
 }

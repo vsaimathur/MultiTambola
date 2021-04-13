@@ -31,11 +31,11 @@ const io = socket_io(server, {
 });
 
 //This funtion returns a list which contains the names of all the players in that room. [***Can be improved by creating a global variable]
-const getRoomPlayers = (data) => {
+const getRoomPlayers = (roomID) => {
     let roomPlayerNames = []
 
-    if (!roomSockets[data.roomID]) return [];
-    roomSockets[data.roomID].map((socketID) => {
+    if (!roomSockets[roomID]) return [];
+    roomSockets[roomID].map((socketID) => {
         roomPlayerNames.push(socketNames[socketID]);
     })
     return roomPlayerNames;
@@ -77,24 +77,15 @@ io.on("connection", (socket) => {
         // console.log(roomSockets,socketRoom,socketNames,socketNoTickets);
     })
 
-    //Game Start Is Handled here
-    socket.on("GAME_START_REQ", () => {
-        if (roomSockets[socketRoom[socket.id]][0] === socket.id) {
-            io.to(socketRoom[socket.id]).emit("GAME_START_ACK");
-        }
-    })
-
     //Join room request is handled here when a player clicks join button in Join Room Page
     //adding the newly joined players to a room & emitting (updated no. of players in room List) to newly joined client & already 
     //joined client if the room exists else JOIN_ACK 
     socket.on("JOIN_ROOM_REQ", (data) => {
         let roomAvailStatusCheck = getRoomAvailableStatus(data.roomID);
-        if (data.roomID < MIN_ROOMID_LEN || data.roomID > MAX_ROOMID_LEN || !data.roomID || data.playerName.trim() === "" || !roomAvailStatusCheck) {
+        if (!data.roomID || data.playerName.trim() === "" || !roomAvailStatusCheck) {
 
             //emitting failed room doesn't exist or not found status only to socket/ client that tried to join.
-            io.to(socket.id).emit("JOIN_ACK_ROOM_PLAYER_NAMES", {
-                status : 404
-            });
+            io.to(socket.id).emit("JOIN_ROOM_FAILED");
         }
         else {
             if (roomSockets[data.roomID]) {
@@ -105,14 +96,22 @@ io.on("connection", (socket) => {
             socketNoTickets[socket.id] = data.noTickets;
             console.log(roomSockets);
             socket.join(data.roomID)
+            
+            io.to(socket.id).emit("JOIN_ROOM_ACK");
 
-            //emitting success of socket/client to join the room to all the players in the room.
-            io.to(data.roomID).emit("JOIN_ACK_ROOM_PLAYER_NAMES", {
-                status : 200,
-                roomPlayerNames: getRoomPlayers(data)
+            //emitting success of socket/client to join the room to all the players in the room by sending updated playernames in room list.
+            io.to(data.roomID).emit("ROOM_PLAYER_NAMES", {
+                roomPlayerNames: getRoomPlayers(data.roomID)
             });
         }
         
+    })
+
+    //Game Start Is Handled here
+    socket.on("GAME_START_REQ", () => {
+        if (roomSockets[socketRoom[socket.id]][0] === socket.id) {
+            io.to(socketRoom[socket.id]).emit("GAME_START_ACK");
+        }
     })
 
     socket.on("disconnect", () => {
@@ -140,10 +139,19 @@ server.listen(PORT, () => {
 //need to disable input are submitting player info. to server in CreateNewRoom.js & JoinRoom.js [✔]
 //need to check if entered room exists or not in JoinRoom.js page. [✔]
 //need to write alternative approch for room exists check. [✔]
+//need to also further improve the design of logic implemented in createNewRoom & JoinRoom componets by creating context for 
+//roomPlayerNames, LiveRoomCount. [✔]
 //need to write logic for handleGameStartButton in CreateNewRoom.js
+//Header needs to be written using material-ui or react-bootstrap
+
 
 
 //** Problems & Temp Sol'n: */
+
+
+//Socket.IO Transports problem (took so much time)
+
+//UseEffect for socket and umount return learning & using
 
 //Problem 1: There is problem with form submission of data
 //Solution 1: temp sol'n => used onClick
@@ -164,3 +172,7 @@ server.listen(PORT, () => {
 // current Approach : sending all rooms available to all the connected client & emitting new rooms list again to all client whenever new room is added.
 // Alternative approch : Join Room Request needs to be sent to server and check if room exists in server & need to be sent back to server [TODO**]
 
+// Silly Mistake:
+
+// UseEffect Render Problems based on changed dependency variables
+// EVENT NAME mismatch problems.

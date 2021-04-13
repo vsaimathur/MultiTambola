@@ -1,17 +1,18 @@
-import {SocketContext} from "./Socket";
+import { SocketContext } from "./contexts/Socket";
 import { useContext, useEffect } from "react";
+import LiveNumGen from "./LiveNumGen";
+import Tickets from "./Tickets";
+import PlayersDisplayList from "./PlayersDisplayList";
 
 const GameRoom = () => {
 
-    const socket = useContext(SocketContext)
-
-    useEffect(() => {
-        
-    }, [socket])
     return (
         <>
-            <p>Game Page!</p>
-        </>);
-    }
+            <LiveNumGen />
+            <Tickets />
+            <PlayersDisplayList />
+        </>
+        );
+}
 
-export default GameRoom;    
+export default GameRoom;
