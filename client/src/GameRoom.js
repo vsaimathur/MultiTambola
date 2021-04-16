@@ -1,6 +1,4 @@
-import { SocketContext } from "./contexts/Socket";
-import { useContext, useEffect } from "react";
-import LiveNumGen from "./LiveNumGen";
+import LiveNumDisplay from "./LiveNumDisplay";
 import Tickets from "./Tickets";
 import PlayersDisplayList from "./PlayersDisplayList";
 
@@ -8,7 +6,7 @@ const GameRoom = () => {
 
     return (
         <>
-            <LiveNumGen />
+            <LiveNumDisplay />
             <Tickets />
             <PlayersDisplayList />
         </>

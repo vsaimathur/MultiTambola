@@ -7,8 +7,8 @@ const PlayersDisplayList = () => {
     return ( 
     <ul>
 
-    {roomPlayerNames.map((name) => {
-        return <li>{name}</li>
+    {roomPlayerNames.map((name,index) => {
+        return <li key = {index}>{name}</li>
     })}
 
     </ul> );

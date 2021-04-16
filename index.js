@@ -7,6 +7,9 @@ var roomsAvailable = [] // [room1, room2, room3]
 var randomRoomID = null;
 var MAX_ROOMID_LEN = 999999;
 var MIN_ROOMID_LEN = 100000;
+var roomBoard = {} // {roomNumber : [0,0,0,0, .... 90 times for board]}
+var roomSequence = {} // {roomNumber : [87,32, ...... 90 numbers for sequence]}
+var roomLastSequenceNumberReq = {} // {roomNumber : seqNumberLast Requested}
 
 var CLIENT_URL = process.env.CLIENT_URL || "localhost:3000"
 
@@ -22,6 +25,7 @@ app.use(express.urlencoded({ extended: false }));
 
 const server = require("http").createServer(app);
 const socket_io = require("socket.io");
+const { generateKeyPair } = require("crypto")
 const io = socket_io(server, {
     cors: {
         origin: "http://127.0.0.1:5000",
@@ -29,6 +33,15 @@ const io = socket_io(server, {
         credentials: true
     }
 });
+
+
+//This function check if a given room exists in the global rooms list and returns accordingly.
+const getRoomAvailableStatus = (roomID) => {
+    for (let i = 0; i < roomsAvailable.length; i++) {
+        if (roomsAvailable[i] === roomID.toString().trim()) return true;
+    }
+    return false;
+}
 
 //This funtion returns a list which contains the names of all the players in that room. [***Can be improved by creating a global variable]
 const getRoomPlayers = (roomID) => {
@@ -41,12 +54,46 @@ const getRoomPlayers = (roomID) => {
     return roomPlayerNames;
 }
 
-//This function check if a given room exists in the global rooms list and returns accordingly.
-const getRoomAvailableStatus = (roomID) => {
-    for (let i = 0; i < roomsAvailable.length; i++) {
-        if (roomsAvailable[i] === roomID.toString().trim()) return true;
+// const getLiveNumGen = (socket) => {
+
+//     if (!roomBoard[socketRoom[socket.id]]) {
+//         roomBoard[socketRoom[socket.id]] = new Array(91).fill(0);
+//     }
+//     if (!roomSequence[socketRoom[socket.id]]) {
+//         roomSequence[socketRoom[socket.id]] = [];
+//     }
+//     let tryNum = (1 + Math.round(Math.random() * 100)) % 91;
+//     while (roomBoard[socketRoom[socket.id]][tryNum]) {
+//         let tryNum = (1 + Math.round(Math.random() * 100)) % 91;
+//     }
+//     roomBoard[socketRoom[socket.id]][tryNum] = 1;
+//     roomSequence[socketRoom[socket.id]].push(tryNum);
+//     return tryNum;
+// }
+
+const genSequenceBoard = (socket) => {
+    let count = 0;
+
+    //initializing roomBoard, but will update this board live when host in purticular room requests for a number.
+    if (!roomBoard[socketRoom[socket.id]]) {
+        roomBoard[socketRoom[socket.id]] = new Array(91).fill(0);
     }
-    return false;
+
+    //initializing roomSequence, generating entire sequence of numbers from 1 to 90, in some random order any storing according to room.
+    if (!roomSequence[socketRoom[socket.id]]) {
+        roomSequence[socketRoom[socket.id]] = [];
+    }
+    let tempBoard = new Array(91).fill(0);
+    while (count < 90) {
+        let tryNum = (1 + Math.round(Math.random() * 100)) % 91;
+        while (tempBoard[tryNum] || !tryNum) {
+            tryNum = (1 + Math.round(Math.random() * 100)) % 91;
+        }
+        tempBoard[tryNum] = 1;
+        roomSequence[socketRoom[socket.id]].push(tryNum);
+        count++;
+    }
+    console.log(roomSequence[socketRoom[socket.id]]);
 }
 
 io.on("connection", (socket) => {
@@ -57,8 +104,8 @@ io.on("connection", (socket) => {
     socket.on("CREATE_ROOM_ID", (data) => {
 
         //random roomID generation
-        randomRoomID = (Math.floor(Math.random() * (MAX_ROOMID_LEN-MIN_ROOMID_LEN+1))).toString();
-        console.log(randomRoomID);  
+        randomRoomID = (Math.floor(Math.random() * (MAX_ROOMID_LEN - MIN_ROOMID_LEN + 1))).toString();
+        console.log(randomRoomID);
         roomSockets[randomRoomID] = [socket.id]
         socketRoom[socket.id] = randomRoomID;
         socketNames[socket.id] = data.hostName;
@@ -96,7 +143,7 @@ io.on("connection", (socket) => {
             socketNoTickets[socket.id] = data.noTickets;
             console.log(roomSockets);
             socket.join(data.roomID)
-            
+
             io.to(socket.id).emit("JOIN_ROOM_ACK");
 
             //emitting success of socket/client to join the room to all the players in the room by sending updated playernames in room list.
@@ -104,14 +151,47 @@ io.on("connection", (socket) => {
                 roomPlayerNames: getRoomPlayers(data.roomID)
             });
         }
-        
+
     })
 
+    socket.on("HOST_CHECK_REQ", () => {
+        try {
+            io.to(socket.id).emit("HOST_CHECK_ACK", {
+                status: roomSockets[socketRoom[socket.id]][0] === socket.id ? true : false
+            })
+        } catch (err) {
+            console.log("Socket Didn't Join Any room or room don't exist");
+        }
+    })
     //Game Start Is Handled here
     socket.on("GAME_START_REQ", () => {
+        genSequenceBoard(socket);
         if (roomSockets[socketRoom[socket.id]][0] === socket.id) {
             io.to(socketRoom[socket.id]).emit("GAME_START_ACK");
         }
+    })
+
+    socket.on("LIVE_NUM_GEN_REQ", (data) => {
+        try {
+
+            //recoding the last sequnece number requested by client in a purticular room.
+            roomLastSequenceNumberReq[socketRoom[socket.id]] = data.sequenceNumber;
+            //making curNumGen on board as 1 from 0 for a purticular room. (so that ticket Checking will become easy in time complexity)
+            roomBoard[socketRoom[socket.id]][roomSequence[socketRoom[socket.id]][data.sequenceNumber]] = 1;
+            io.to(socketRoom[socket.id]).emit("LIVE_NUM_GEN_ACK", {
+                curNumGen: roomSequence[socketRoom[socket.id]][data.sequenceNumber],
+                prevNumGen: roomSequence[socketRoom[socket.id]][data.sequenceNumber - 1]
+            })
+
+        } catch (err) {
+            console.log("Room Sequnece/Board Not yet generated!");
+        }
+    })
+
+    socket.on("GET_NO_TICKETS_REQ", () => {
+        io.to(socket.id).emit("GET_NO_TICKETS_ACK", {
+            noTickets : socketNoTickets[socket.id]
+        })
     })
 
     socket.on("disconnect", () => {
