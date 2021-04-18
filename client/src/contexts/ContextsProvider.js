@@ -1,16 +1,16 @@
 import usePlayerNames, { PlayerNamesContext } from './usePlayerNames';
-import useHostCheck, { HostCheckContext } from './useHostCheck';
+import usePlayerCheck, {PlayerCheckContext} from './usePlayerCheck';
 import useLiveNumGen, { LiveNumGenContext } from './useLiveNumGen';
 
 const ContextsProvider = ({ children }) => {
     return (
         <>
             <PlayerNamesContext.Provider value={usePlayerNames()}>
-                <HostCheckContext.Provider value={useHostCheck()}>
+                <PlayerCheckContext.Provider value={usePlayerCheck()}>
                     <LiveNumGenContext.Provider value={useLiveNumGen()}>
                         {children}
                     </LiveNumGenContext.Provider>
-                </HostCheckContext.Provider>
+                </PlayerCheckContext.Provider>
             </PlayerNamesContext.Provider>
         </>)
 }

@@ -2,7 +2,7 @@
 var roomSockets = {} // {roomNo : [socket1ID,socket2ID]}
 var socketRoom = {} // {socketID : RoomID}
 var socketNames = {} //{socketID : Name}
-var socketNoTickets = {} // {socketID : noTickets}
+var socketTickets = {} // {socketID : ticketsArr} -> ticketsArr => [ticket1, ticket2, ...]
 var roomsAvailable = [] // [room1, room2, room3]
 var randomRoomID = null;
 var MAX_ROOMID_LEN = 999999;
@@ -10,6 +10,20 @@ var MIN_ROOMID_LEN = 100000;
 var roomBoard = {} // {roomNumber : [0,0,0,0, .... 90 times for board]}
 var roomSequence = {} // {roomNumber : [87,32, ...... 90 numbers for sequence]}
 var roomLastSequenceNumberReq = {} // {roomNumber : seqNumberLast Requested}
+
+var ticketModel = [[0, 0, 0, 0, 1, 1, 1, 1, 1],
+[0, 0, 0, 0, 1, 1, 1, 1, 1],
+[0, 0, 0, 0, 1, 1, 1, 1, 1]]; //model for generating tickets
+
+var prepBoard = [[1, 2, 3, 4, 5, 6, 7, 8, 9],
+[10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+[20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+[30, 31, 32, 33, 34, 35, 36, 37, 38, 39],
+[40, 41, 42, 43, 44, 45, 46, 47, 48, 49],
+[50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
+[60, 61, 62, 63, 64, 65, 66, 67, 68, 69],
+[70, 71, 72, 73, 74, 75, 76, 77, 78, 79],
+[80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90]]; //this is used for generating random sequences in coloum of tickets
 
 var CLIENT_URL = process.env.CLIENT_URL || "localhost:3000"
 
@@ -53,6 +67,39 @@ const getRoomPlayers = (roomID) => {
     })
     return roomPlayerNames;
 }
+
+//Ticket Generation Logic
+
+const shuffle = (arr) => {
+    let tempArr = [...arr];
+    for (let i = tempArr.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [tempArr[i], tempArr[j]] = [tempArr[j], tempArr[i]];
+    }
+    return tempArr;
+}
+
+const newTicketGen = () => {
+    let ticket = [...ticketModel];
+    for (let i = 0; i < 3; i++) ticket[i] = shuffle(ticket[i]);
+
+    for (let i = 0; i < 9; i++) {
+        let tempArr = shuffle(prepBoard[i]).slice(0, 3).sort();
+        for (j = 0; j < 3; j++) {
+            ticket[j][i] *= tempArr[j];
+        }
+    }
+    return ticket;
+}
+
+const genTickets = (no) => {
+    let tickets = []
+    for (let i = 0; i < no; i++) {
+        tickets.push(newTicketGen());
+    }
+    return tickets;
+}
+
 
 // const getLiveNumGen = (socket) => {
 
@@ -109,7 +156,7 @@ io.on("connection", (socket) => {
         roomSockets[randomRoomID] = [socket.id]
         socketRoom[socket.id] = randomRoomID;
         socketNames[socket.id] = data.hostName;
-        socketNoTickets[socket.id] = data.noTickets;
+        socketTickets[socket.id] = genTickets(data.noTickets);
         roomsAvailable.push(randomRoomID);
 
         //joining the host socket to created room.
@@ -121,7 +168,7 @@ io.on("connection", (socket) => {
         });
 
         //we again emit the (updated live rooms available list) to all the clients as new room is added to the list.
-        // console.log(roomSockets,socketRoom,socketNames,socketNoTickets);
+        // console.log(roomSockets,socketRoom,socketNames,socketTickets);
     })
 
     //Join room request is handled here when a player clicks join button in Join Room Page
@@ -140,7 +187,7 @@ io.on("connection", (socket) => {
             }
             socketNames[socket.id] = data.playerName;
             socketRoom[socket.id] = data.roomID;
-            socketNoTickets[socket.id] = data.noTickets;
+            socketTickets[socket.id] = genTickets(data.noTickets);
             console.log(roomSockets);
             socket.join(data.roomID)
 
@@ -154,11 +201,19 @@ io.on("connection", (socket) => {
 
     })
 
-    socket.on("HOST_CHECK_REQ", () => {
+
+    //We use this to check if client is host(0) / joined the room(1) / didn't yet join the room(2).
+    socket.on("PLAYER_CHECK_REQ", () => {
         try {
-            io.to(socket.id).emit("HOST_CHECK_ACK", {
-                status: roomSockets[socketRoom[socket.id]][0] === socket.id ? true : false
-            })
+            if (!socketRoom[socket.id]) {
+                io.to(socket.id).emit("PLAYER_CHECK_ACK", {
+                    status: 2
+                })
+            } else {
+                io.to(socket.id).emit("PLAYER_CHECK_ACK", {
+                    status: roomSockets[socketRoom[socket.id]][0] === socket.id ? 0 : 1
+                })
+            }
         } catch (err) {
             console.log("Socket Didn't Join Any room or room don't exist");
         }
@@ -188,9 +243,9 @@ io.on("connection", (socket) => {
         }
     })
 
-    socket.on("GET_NO_TICKETS_REQ", () => {
-        io.to(socket.id).emit("GET_NO_TICKETS_ACK", {
-            noTickets : socketNoTickets[socket.id]
+    socket.on("GET_TICKETS_REQ", () => {
+        io.to(socket.id).emit("GET_TICKETS_ACK", {
+            tickets: socketTickets[socket.id]
         })
     })
 
@@ -221,7 +276,10 @@ server.listen(PORT, () => {
 //need to write alternative approch for room exists check. [✔]
 //need to also further improve the design of logic implemented in createNewRoom & JoinRoom componets by creating context for 
 //roomPlayerNames, LiveRoomCount. [✔]
-//need to write logic for handleGameStartButton in CreateNewRoom.js
+//need to write logic for handleGameStartButton in CreateNewRoom.js[✔]
+//need to check for some state problem in ticket counts receiving in Ticket.js File [✔]
+//need to write logic for ticketGen[✔]
+//need to change the design for Tickets.js & Ticket.js[✔]
 //Header needs to be written using material-ui or react-bootstrap
 
 

@@ -1,39 +1,24 @@
-const Ticket = () => {
+const Ticket = ({ data }) => {
     return (
         <>
-            <tr>
-                <td>1</td>
-                <td></td>
-                <td>2</td>
-                <td></td>
-                <td>3</td>
-                <td></td>
-                <td>4</td>
-                <td></td>
-                <td>5</td>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td></td>
-                <td></td>
-                <td>2</td>
-                <td></td>
-                <td>3</td>
-                <td></td>
-                <td>4</td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td></td>
-                <td>2</td>
-                <td></td>
-                <td>3</td>
-                <td></td>
-                <td>5</td>
-                <td></td>
-                <td>6</td>
-            </tr>
+            <table className="table" border = "1px">
+                <tbody>
+                    {
+                        data.map((row, index) => {
+                            return (
+                                <tr>
+                                    {
+                                        row.map((col) => {
+                                            if(col === 0) return <td></td>
+                                            return <td>{col}</td>
+                                        })
+                                    }
+                                </tr>
+                            )
+                        })
+                    }
+                </tbody>
+            </table>
         </>);
 }
 

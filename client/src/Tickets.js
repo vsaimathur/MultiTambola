@@ -5,36 +5,25 @@ import Ticket from './Ticket';
 const Tickets = () => {
 
     const socket = useContext(SocketContext);
-    const [noTicketsArr, setNoTicketsArr] = useState([]);
-
-    const handleGetNoTickets = (data) => {
-        let tempArr = []
-        for (let i = 0; i < 2; i++) {
-            tempArr.push(1);
-        }
-        setNoTicketsArr(prevVal => [...tempArr]);
+    const [tickets, setTickets] = useState([]);
+    const handleGetTickets = (data) => {
+        setTickets(data.tickets);
     }
     useEffect(() => {
-        socket.emit("GET_NO_TICKETS_REQ");
+        socket.emit("GET_TICKETS_REQ");
 
-        socket.on("GET_NO_TICKETS_ACK", handleGetNoTickets);
+        socket.on("GET_TICKETS_ACK", handleGetTickets);
 
-        return () => socket.off("GET_NO_TICKETS_ACK", handleGetNoTickets);
+        return () => socket.off("GET_TICKETS_ACK", handleGetTickets);
     }, [socket])
 
     return (
         <>
-            {/* Some CSS Problem with border while applying Br here. */}
-            <table className="table" border ="1px"> 
-                <tbody>
-                    {noTicketsArr.map((val, index) => {
-                        return (
-                            <>
-                                <Ticket key={index} /> <br/><br/>
-                            </>)
-                    })}
-                </tbody>
-            </table>
+            {
+                tickets && tickets.map((ticket, index) => {
+                    return <Ticket key={index} data={ticket} />
+                })
+            }
         </>)
 }
 
