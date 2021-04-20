@@ -10,6 +10,15 @@ var MIN_ROOMID_LEN = 100000;
 var roomBoard = {} // {roomNumber : [0,0,0,0, .... 90 times for board]}
 var roomSequence = {} // {roomNumber : [87,32, ...... 90 numbers for sequence]}
 var roomLastSequenceNumberReq = {} // {roomNumber : seqNumberLast Requested}
+var roomWinConditionsAvailableStatus = []; 
+/*[roomNumber : winConditionsAvailableStatus] -> winConditionsAvailableStatus => {
+    earlyFive: true,
+    topRow: true,
+    middleRow: true,
+    lastRow: true,
+    fullHousie: true
+}
+*/
 
 var ticketModel = [[0, 0, 0, 0, 1, 1, 1, 1, 1],
 [0, 0, 0, 0, 1, 1, 1, 1, 1],
@@ -143,6 +152,139 @@ const genSequenceBoard = (socket) => {
     console.log(roomSequence[socketRoom[socket.id]]);
 }
 
+//Ticket Check Logics
+
+const EarlyFiveCheck = (ticketData, roomNo) => {
+    let ticketsStatus = [];
+    let cnt = 0;
+    for (let i = 0; i < ticketData.length; i++) {
+        for (let j = 0; j < ticketData[i].length; j++) {
+            for (let k = 0; k < ticketData[i][j].length; k++) {
+                if (roomBoard[roomNo][ticketData[i][j][k]]) cnt++;
+            }
+        }
+        if (cnt >= 5) {
+            ticketsStatus.push(true);
+        } else {
+            ticketsStatus.push(false);
+        }
+        cnt = 0;
+    }
+    return ticketsStatus.some((val) => val === true);
+}
+
+const TopRowCheck = (ticketData, roomNo) => {
+    let ticketsStatus = [];
+    let cnt = 0;
+    for (let i = 0; i < ticketData.length; i++) {
+        // checking only for 1 row.
+        for (let k = 0; k < ticketData[i][0].length; k++) {
+            if (roomBoard[roomNo][ticketData[i][0][k]]) cnt++;
+        }
+        if (cnt === 5) {
+            ticketsStatus.push(true);
+        } else {
+            ticketsStatus.push(false);
+        }
+        cnt = 0;
+    }
+    return ticketsStatus.some((val) => val === true);
+}
+
+const MiddleRowCheck = (ticketData, roomNo) => {
+    let ticketsStatus = [];
+    let cnt = 0;
+    for (let i = 0; i < ticketData.length; i++) {
+        // checking only for 1 row.
+        for (let k = 0; k < ticketData[i][1].length; k++) {
+            if (roomBoard[roomNo][ticketData[i][1][k]]) cnt++;
+        }
+        if (cnt === 5) {
+            ticketsStatus.push(true);
+        } else {
+            ticketsStatus.push(false);
+        }
+        cnt = 0;
+    }
+    return ticketsStatus.some((val) => val === true);
+}
+
+const LastRowCheck = (ticketData, roomNo) => {
+    let ticketsStatus = [];
+    let cnt = 0;
+    for (let i = 0; i < ticketData.length; i++) {
+        // checking only for 1 row.
+        for (let k = 0; k < ticketData[i][2].length; k++) {
+            if (roomBoard[roomNo][ticketData[i][2][k]]) cnt++;
+        }
+        if (cnt === 5) {
+            ticketsStatus.push(true);
+        } else {
+            ticketsStatus.push(false);
+        }
+        cnt = 0;
+    }
+    return ticketsStatus.some((val) => val === true);
+}
+
+const FullHousieCheck = (ticketData, roomNo) => {
+    let ticketsStatus = [];
+    let cnt = 0;
+    for (let i = 0; i < ticketData.length; i++) {
+        for (let j = 0; j < ticketData[i].length; j++) {
+            for (let k = 0; k < ticketData[i][j].length; k++) {
+                if (roomBoard[roomNo][ticketData[i][j][k]]) cnt++;
+            }
+        }
+        if (cnt === 15) {
+            ticketsStatus.push(true);
+        } else {
+            ticketsStatus.push(false);
+        }
+        cnt = 0;
+    }
+    return ticketsStatus.some((val) => val === true);
+}
+
+const checkWinConditions = (winConditionsCheckReq, ticketData, roomNo) => {
+    let winConditionsAckStatus = {...winConditionsCheckReq};
+
+    Object.keys(winConditionsCheckReq).map((key) => {
+        let tempStatusVar;
+        if (roomWinConditionsAvailableStatus[roomNo][key]) {
+            if (winConditionsCheckReq[key]) {
+                if (key === "earlyFive") {
+                    tempStatusVar = EarlyFiveCheck(ticketData,roomNo);
+                    if(tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = false;
+                    winConditionsAckStatus[key] = tempStatusVar;
+                }
+                else if (key === "topRow") {
+                    tempStatusVar = TopRowCheck(ticketData, roomNo);
+                    if(tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = false;
+                    winConditionsAckStatus[key] = tempStatusVar;
+                }
+                else if (key === "middleRow") {
+                    tempStatusVar = MiddleRowCheck(ticketData, roomNo);
+                    if(tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = false;
+                    winConditionsAckStatus[key] = tempStatusVar;
+                }
+                else if (key === "lastRow"){
+                    tempStatusVar = LastRowCheck(ticketData, roomNo);
+                    if(tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = false;
+                    winConditionsAckStatus[key] = tempStatusVar;
+                }
+                else if (key === "fullHousie") {
+                    tempStatusVar = FullHousieCheck(ticketData, roomNo);
+                    if(tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = false;
+                    winConditionsAckStatus[key] = tempStatusVar;
+                }
+            }
+        }
+    });
+
+    return winConditionsAckStatus;
+}
+
 io.on("connection", (socket) => {
     console.log("new socket created with ID : ", socket.id);
 
@@ -156,7 +298,18 @@ io.on("connection", (socket) => {
         roomSockets[randomRoomID] = [socket.id]
         socketRoom[socket.id] = randomRoomID;
         socketNames[socket.id] = data.hostName;
+        
+        //ticket generation for host socket in room.
         socketTickets[socket.id] = genTickets(data.noTickets);
+
+        //initializing room winConditions State.
+        roomWinConditionsAvailableStatus[randomRoomID] = {
+            earlyFive: true,
+            topRow: true,
+            middleRow: true,
+            lastRow: true,
+            fullHousie: true
+        };
         roomsAvailable.push(randomRoomID);
 
         //joining the host socket to created room.
@@ -249,6 +402,28 @@ io.on("connection", (socket) => {
         })
     })
 
+    //[***NOT YET USED AS MID CLIENT JOIN FEATURE IS NOT IMPLEMENTED YET] 
+    //this feature is for letting the client who joined in the middle of game to let know about the current winConditionsAvailable 
+    // socket.on("WIN_CONDITIONS_AVAILABLE_STATUS_REQ", () => {
+    //     console.log("01");
+    //     io.to(socket.id).emit("WIN_CONDITIONS_AVAILABLE_STATUS", {
+    //         curWinConditionsAvailable : roomWinConditionsAvailableStatus[socketRoom[socket.id]]
+    //     })
+    // })
+
+    socket.on("WIN_CONDITIONS_CHECK_REQ", (data) => {
+        try {
+            io.to(socket.id).emit("WIN_CONDITIONS_CHECK_ACK",{
+                winConditionsAck : checkWinConditions(data.winConditionsCheckReq, data.ticketData, socketRoom[socket.id])
+            });
+            io.to(socketRoom[socket.id]).emit("WIN_CONDITIONS_AVAILABLE_STATUS", {
+                curWinConditionsAvailable : roomWinConditionsAvailableStatus[socketRoom[socket.id]]
+            })
+        } catch (err) {
+            console.log("Socket/ client didn't join any room yet");
+        }
+    });
+
     socket.on("disconnect", () => {
         console.log(`socket with ID : ${socket.id} disconnected..`);
     })
@@ -280,7 +455,9 @@ server.listen(PORT, () => {
 //need to check for some state problem in ticket counts receiving in Ticket.js File [✔]
 //need to write logic for ticketGen[✔]
 //need to change the design for Tickets.js & Ticket.js[✔]
-//Header needs to be written using material-ui or react-bootstrap
+//Header needs to be written using material-ui or react-bootstrap 
+// Decided for writing entire front-end with Material-UI
+// written logic for ticket validation and checking of availablity of winConditions.[✔]
 
 
 
