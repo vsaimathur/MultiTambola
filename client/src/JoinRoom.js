@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { SocketContext } from "./contexts/Socket";
 import { useHistory } from "react-router-dom";
 import { PlayerNamesContext } from "./contexts/usePlayerNames";
+import { Button, Container, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography } from "@material-ui/core";
 
 const JoinRoom = () => {
 
@@ -15,11 +16,12 @@ const JoinRoom = () => {
     const history = useHistory();
 
     //state variables
-    const [roomID, setRoomID] = useState(null);
-    const [noTickets, setNoTickets] = useState(1);
+    const [roomID, setRoomID] = useState("");
+    const [roomIDError, setRoomIDError] = useState(null);
+    const [noTickets, setNoTickets] = useState("1");
     const [playerName, setPlayerName] = useState("");
+    const [playerNameError, setPlayerNameError] = useState(false);
     const [infoFilledStatus, setInfoFilledStatus] = useState(false);
-    const [roomJoinedStatus, setRoomJoinedStatus] = useState(null);
 
 
     //useRef Variables
@@ -31,23 +33,48 @@ const JoinRoom = () => {
 
     //button/click handlers
 
+    const handleRoomIDEntered = (event) => {
+        let tempVerificationRoomID = event.target.value;
+        if(tempVerificationRoomID.trim() === "") {
+            setRoomIDError("RoomID cannot be blank");
+            return false;
+        } 
+        if(isNaN(parseInt(tempVerificationRoomID))) {
+            setRoomIDError("RoomID should only be digits");
+            return false;
+        }
+        setRoomID(tempVerificationRoomID);
+    }
     //on clicking join button it changes the state of infoFilledStatus to true
     const onFilledHandler = (event) => {
         event.preventDefault();
+
+        let errorFlagTemp = false;
+        if (playerName.trim() === "") {
+            setPlayerNameError("Name field cannot be blank");
+            errorFlagTemp = true;
+        }
+        console.log(roomID);
+        if (isNaN(roomID)) {
+            
+            errorFlagTemp = true;
+        }
+        if (errorFlagTemp) return false;
+        setPlayerNameError(false);
+        setRoomIDError(false);
         setInfoFilledStatus(true);
     }
 
     //listener handlers
 
     const handleJoinRoomFailed = () => {
-        setRoomJoinedStatus(false);
-
+        setRoomIDError("Room does'nt exist!");
         // for useEffect Hook to emit JOIN_REQ event again
         setInfoFilledStatus(false);
     }
 
     const handleJoinRoomAck = () => {
-        setRoomJoinedStatus(true);
+        setRoomIDError(false);
 
         //Disabling the inputs in the client window so that he would'nt change the info. again.
         playerNameRef.current.disabled = true;
@@ -90,30 +117,34 @@ const JoinRoom = () => {
 
 
     return (
-        <>
-            <label htmlFor="room-id">Enter Room ID :</label>
-            <br />
-            <input ref={roomIDElementRef} type="number" name="room-id" id="room-id" required onChange={(event) => setRoomID(event.target.value)} />
-            {roomJoinedStatus === false && <div className="text-danger">Room does'nt exist!</div>}
-            <br />
-            <label htmlFor="player-name">Enter your name : </label>
-            <br />
-            <input ref={playerNameRef} type="text" name="player-name" id="player-name" value={playerName} required onChange={(event) => setPlayerName(event.target.value)} />
-            <br />
-            <label htmlFor="noTickets">Select Number of Tickets : </label>
-            <br />
-            <select ref={noTicketsRef} name="no-tickets" id="no-tickets" onChange={(event) => setNoTickets(event.target.value)} required >
-                <option value="1">1</option>
-                <option value="2">2</option>
-                {/* <option value="3">3</option> */}
-            </select>
-            <br />
-            <br />
-            <button type="submit" className="btn btn-primary" disabled = {roomJoinedStatus ? true : false} name="join" id="join" onClick={onFilledHandler}>Join</button>
-
-            {roomJoinedStatus === true && <div className="text-success">Successfully Joined the room! & Waiting for Game To Start!<br /></div>}
-            {roomJoinedStatus === true && <p>Player's Joined : {roomPlayerNames.length}</p>}
-        </>);
+        <div className={`h-100 d-flex align-items-center`} >
+            <Container disableGutters className={`d-flex justify-content-center`}>
+                <div style={{ border: "2px solid blue", padding: '5vh' }}>
+                    <Typography variant="h5" color="secondary">JOIN ROOM FORM</Typography>
+                    <br />
+                    <TextField disabled = {roomIDError === false ? true : false} variant="outlined" label={"Room ID"} ref={roomIDElementRef} error={roomIDError ? true : false} helperText={roomIDError} name="room-id" id="room-id" required onChange={handleRoomIDEntered} />
+                    <br />
+                    <br />
+                    <TextField disabled = {roomIDError === false ? true : false} required variant="outlined" label="Name" ref={playerNameRef} name="player-name" id="player-name" value={playerName} error={playerNameError !== false} helperText={playerNameError} onChange={(event) => setPlayerName(event.target.value)} />
+                    <br />
+                    <br />
+                    <FormControl component="fieldset">
+                        <FormLabel component="legend">Select No. of tickets : </FormLabel>
+                        <RadioGroup required ref={noTicketsRef} name="no-tickets" id="no-tickets" value={noTickets} onChange={(event) => setNoTickets(event.target.value)}>
+                            <FormControlLabel disabled = {roomIDError === false ? true : false} value="1" control={<Radio />} label="1" />
+                            <FormControlLabel disabled = {roomIDError === false ? true : false} value="2" control={<Radio />} label="2" />
+                            {/* <FormControlLabel value="3" control={<Radio />} label="3" /> */}
+                        </RadioGroup>
+                    </FormControl>
+                    <br />
+                    <br />
+                    <Button variant="contained" color="primary" disabled={roomIDError === false ? true : false} name="join" id="join" onClick={onFilledHandler}>Join</Button>
+                    {roomIDError === false && <Typography className="text-success">Successfully Joined the room! & Waiting for Game To Start!<br /></Typography>}
+                    {roomIDError === false && <Typography>Player's Joined : {roomPlayerNames.length}</Typography>}
+                </div>
+            </Container>
+        </div>
+    );
 }
 
 export default JoinRoom;

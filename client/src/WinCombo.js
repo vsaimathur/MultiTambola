@@ -3,6 +3,7 @@ import { SocketContext } from "./contexts/Socket";
 import { TicketsDataContext } from "./contexts/useTicketsData";
 import { TicketLiveStatusContext } from "./contexts/useTicketStatusLive";
 import { WinConditionsAvailableContext } from "./contexts/useWinConditionsAvailable";
+import { Button, Typography } from "@material-ui/core";
 
 const WinCombo = () => {
 
@@ -13,6 +14,13 @@ const WinCombo = () => {
     const { winConditionsAvailableStatus } = useContext(WinConditionsAvailableContext);
 
     const [winConditionsClickedStatus, setWinConditionsClickedStatus] = useState(false);
+    const [winConditionsCheckLimitCount, setWinConditionsCheckLimitCount] = useState({
+        earlyFive: 0,
+        topRow: 0,
+        middleRow: 0,
+        lastRow: 0,
+        fullHousie: 0
+    });
     const [winCondtionsStatus, setWinConditionsStatus] = useState({
         earlyFive: false,
         topRow: false,
@@ -35,14 +43,18 @@ const WinCombo = () => {
         return tempArr;
     }
 
-    const handleWinConditionsButtonClicked = (event) => {
-        setWinConditionsStatus({ ...winCondtionsStatus, [event.target.value]: true });
-        setWinConditionsClickedStatus(true);
-    }
+    // Handled handleWinConditionsButtonClicked event for each button seperately in return only. As Button in material-ui is having an 
+    // issue with value attribute and if I handle it here, event.target.value is sometimes giving undefined and sometimes giving correct value. 
+    // const handleWinConditionsButtonClicked = (event) => {
+    //     setWinConditionsStatus({ ...winCondtionsStatus, [event.target.value]: true });
+    //     setWinConditionsClickedStatus(true);
+    // }
 
     const handleWinConditionsCheckAck = (data) => {
         setWinConditionsStatus(data.winConditionsAck);
+        setWinConditionsCheckLimitCount(data.winConditionsCheckLimitCount);
         setWinConditionsClickedStatus(false);
+        console.log(data.winConditionsCheckLimitCount);
     }
 
 
@@ -63,11 +75,47 @@ const WinCombo = () => {
 
     return (
         <>
-            <button className="btn btn-primary" disabled={winConditionsAvailableStatus["earlyFive"] ? false : true} value={"earlyFive"} onClick={handleWinConditionsButtonClicked}>Early Five</button>
-            <button className="btn btn-primary" disabled={winConditionsAvailableStatus["topRow"] ? false : true} value={"topRow"} onClick={handleWinConditionsButtonClicked}>Top Row</button>
-            <button className="btn btn-primary" disabled={winConditionsAvailableStatus["middleRow"] ? false : true} value={"middleRow"} onClick={handleWinConditionsButtonClicked}>Middle Row</button>
-            <button className="btn btn-primary" disabled={winConditionsAvailableStatus["lastRow"] ? false : true} value={"lastRow"} onClick={handleWinConditionsButtonClicked}>Last Row</button>
-            <button className="btn btn-primary" disabled={winConditionsAvailableStatus["fullHousie"] ? false : true} value={"fullHousie"} onClick={handleWinConditionsButtonClicked}>Full Housie!</button>
+            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["earlyFive"] === true && winConditionsCheckLimitCount["earlyFive"] <2 ? false : true} value="earlyFive" onClick={() => {
+                setWinConditionsStatus({ ...winCondtionsStatus, "earlyFive": true });
+                setWinConditionsClickedStatus(true);
+            }}>
+                Early Five
+            </Button>
+            {!(winConditionsAvailableStatus["earlyFive"] === true) && <Typography display = "inline" variant="body1" className="text-success">{winConditionsAvailableStatus["earlyFive"]}</Typography>}
+            <br />
+            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["topRow"] === true  && winConditionsCheckLimitCount["topRow"] <2 ? false : true} value="topRow" onClick={() => {
+                setWinConditionsStatus({ ...winCondtionsStatus, "topRow": true });
+                setWinConditionsClickedStatus(true);
+            }}>
+                Top Row
+            </Button>
+            {!(winConditionsAvailableStatus["topRow"] === true) && <Typography display = "inline" variant="body1" className="text-success">{winConditionsAvailableStatus["topRow"]}</Typography>}
+            <br />
+            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["middleRow"] === true && winConditionsCheckLimitCount["middleRow"] <2 ? false : true} value="middleRow" onClick={() => {
+                setWinConditionsStatus({ ...winCondtionsStatus, "middleRow": true });
+                setWinConditionsClickedStatus(true);
+            }}>
+                Middle Row
+            </Button>
+            {!(winConditionsAvailableStatus["middleRow"] === true) && <Typography display = "inline" variant="body1" className="text-success">{winConditionsAvailableStatus["middleRow"]}</Typography>}
+            <br />
+            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["lastRow"] === true && winConditionsCheckLimitCount["lastRow"] <2 ? false : true} value="lastRow" onClick={() => {
+                setWinConditionsStatus({ ...winCondtionsStatus, "lastRow": true });
+                setWinConditionsClickedStatus(true);
+            }}>
+                Last Row
+            </Button>
+            {!(winConditionsAvailableStatus["lastRow"] === true) && <Typography display = "inline" variant="body1" className="text-success">{winConditionsAvailableStatus["lastRow"]}</Typography>}
+            <br />         
+            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["fullHousie"] === true && winConditionsCheckLimitCount["fullHousie"] <2 ? false : true} value="fullHousie" onClick={() => {
+                setWinConditionsStatus({ ...winCondtionsStatus, "fullHousie": true });
+                setWinConditionsClickedStatus(true);
+            }}>
+                Full Housie
+            </Button>
+            {!(winConditionsAvailableStatus["fullHousie"] === true) && <Typography display = "inline" variant="body1" className="text-success">{winConditionsAvailableStatus["fullHousie"]}</Typography>}
+            <br /> 
+
         </>);
 }
 

@@ -1,8 +1,10 @@
+import {Typography} from '@material-ui/core';
+
 const Footer = () => {
     return (
-    <div className="footer text-center text-white bg-dark">
+    <Typography className = "text-white bg-dark" align = "center">
         Copyright © 2021 multi-tambola
-    </div>
+    </Typography>
     );
 }
 

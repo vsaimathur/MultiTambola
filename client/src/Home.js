@@ -1,9 +1,11 @@
+import { Typography } from "@material-ui/core";
+
 const Home = () => {
     return ( 
     <>
-        <div className="title text-danger text-center">
+        <Typography variant = "h4" align = "center" color = "secondary">
             Welcome to RealTime Multiplayer Tambola Game!
-        </div>
+        </Typography>
     </>
      );
 }

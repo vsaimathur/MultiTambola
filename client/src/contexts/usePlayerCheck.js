@@ -8,7 +8,6 @@ const usePlayerCheck = () => {
 
     const handlePlayerCheckAck = (data) => {
         setPlayerStatus(data.status);
-        console.log(data.status);
     }
     useEffect(() => {
         socket.on("PLAYER_CHECK_ACK", handlePlayerCheckAck);

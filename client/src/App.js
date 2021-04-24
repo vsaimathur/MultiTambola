@@ -9,8 +9,10 @@ import JoinRoom from './JoinRoom';
 import GameRoom from './GameRoom';
 import { SocketContext, socket } from './contexts/Socket';
 import ContextsProvider from './contexts/ContextsProvider';
+import PodiumRoom from './PodiumRoom';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import './index.css';
+
 const App = () => {
     return (
         <SocketContext.Provider value={socket}>
@@ -27,6 +29,7 @@ const App = () => {
                                 <Route exact path="/createnewroom" component={CreateNewRoom} />
                                 <Route exact path="/joinroom" component={JoinRoom} />
                                 <Route exact path="/gameroom" component={GameRoom} />
+                                <Route exact path="/podiumroom" component={PodiumRoom} />
                             </Switch>
                         </div>
                         <Footer />

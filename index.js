@@ -1,17 +1,26 @@
 
-var roomSockets = {} // {roomNo : [socket1ID,socket2ID]}
-var socketRoom = {} // {socketID : RoomID}
-var socketNames = {} //{socketID : Name}
-var socketTickets = {} // {socketID : ticketsArr} -> ticketsArr => [ticket1, ticket2, ...]
-var roomsAvailable = [] // [room1, room2, room3]
+var roomSockets = {}; // {roomNo : [socket1ID,socket2ID]}
+var socketRoom = {}; // {socketID : RoomID}
+var socketNames = {}; //{socketID : Name}
+var socketTickets = {}; // {socketID : ticketsArr} -> ticketsArr => [ticket1, ticket2, ...]
+var roomsAvailable = []; // [room1, room2, room3]
 var randomRoomID = null;
 var MAX_ROOMID_LEN = 999999;
 var MIN_ROOMID_LEN = 100000;
-var roomBoard = {} // {roomNumber : [0,0,0,0, .... 90 times for board]}
-var roomSequence = {} // {roomNumber : [87,32, ...... 90 numbers for sequence]}
-var roomLastSequenceNumberReq = {} // {roomNumber : seqNumberLast Requested}
-var roomWinConditionsAvailableStatus = []; 
-/*[roomNumber : winConditionsAvailableStatus] -> winConditionsAvailableStatus => {
+var roomBoard = {}; // {roomNumber : [0,0,0,0, .... 90 times for board]}
+var roomSequence = {}; // {roomNumber : [87,32, ...... 90 numbers for sequence]}
+var roomLastSequenceNumberReq = {}; // {roomNumber : seqNumberLast Requested}
+var MAX_CHECK_LIMIT = 2; // limit for a socket / player to request for checking a win condition.
+var socketWinConditionsCheckLimitCount = {};
+/*{ socket : winConditionsCheckLimit } -> winConditionsCheckLimit => {
+    earlyFive: 0,
+    topRow: 0,
+    middleRow: 0,
+    lastRow: 0,
+    fullHousie: 0
+}*/
+var roomWinConditionsAvailableStatus = {};
+/*{roomNumber : winConditionsAvailableStatus} -> winConditionsAvailableStatus => {
     earlyFive: true,
     topRow: true,
     middleRow: true,
@@ -246,43 +255,60 @@ const FullHousieCheck = (ticketData, roomNo) => {
     return ticketsStatus.some((val) => val === true);
 }
 
-const checkWinConditions = (winConditionsCheckReq, ticketData, roomNo) => {
-    let winConditionsAckStatus = {...winConditionsCheckReq};
-
+const checkWinConditions = (winConditionsCheckReq, ticketData, socket) => {
+    let winConditionsAckStatus = { ...winConditionsCheckReq };
+    let roomNo = socketRoom[socket.id];
     Object.keys(winConditionsCheckReq).map((key) => {
         let tempStatusVar;
-        if (roomWinConditionsAvailableStatus[roomNo][key]) {
+        if (roomWinConditionsAvailableStatus[roomNo][key] === true) {
             if (winConditionsCheckReq[key]) {
-                if (key === "earlyFive") {
-                    tempStatusVar = EarlyFiveCheck(ticketData,roomNo);
-                    if(tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = false;
-                    winConditionsAckStatus[key] = tempStatusVar;
+                if (socketWinConditionsCheckLimitCount[socket.id][key] < MAX_CHECK_LIMIT) {
+                    if (key === "earlyFive") {
+                        tempStatusVar = EarlyFiveCheck(ticketData, roomNo);
+                        if (tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                        winConditionsAckStatus[key] = tempStatusVar;
+
+                    }
+                    else if (key === "topRow") {
+                        tempStatusVar = TopRowCheck(ticketData, roomNo);
+                        if (tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                        winConditionsAckStatus[key] = tempStatusVar;
+                    }
+                    else if (key === "middleRow") {
+                        tempStatusVar = MiddleRowCheck(ticketData, roomNo);
+                        if (tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                        winConditionsAckStatus[key] = tempStatusVar;
+                    }
+                    else if (key === "lastRow") {
+                        tempStatusVar = LastRowCheck(ticketData, roomNo);
+                        if (tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                        winConditionsAckStatus[key] = tempStatusVar;
+                    }
+                    else if (key === "fullHousie") {
+                        tempStatusVar = FullHousieCheck(ticketData, roomNo);
+                        if (tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                        winConditionsAckStatus[key] = tempStatusVar;
+                    }
+                } else {
+                    winConditionsAckStatus[key] = false;
                 }
-                else if (key === "topRow") {
-                    tempStatusVar = TopRowCheck(ticketData, roomNo);
-                    if(tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = false;
-                    winConditionsAckStatus[key] = tempStatusVar;
-                }
-                else if (key === "middleRow") {
-                    tempStatusVar = MiddleRowCheck(ticketData, roomNo);
-                    if(tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = false;
-                    winConditionsAckStatus[key] = tempStatusVar;
-                }
-                else if (key === "lastRow"){
-                    tempStatusVar = LastRowCheck(ticketData, roomNo);
-                    if(tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = false;
-                    winConditionsAckStatus[key] = tempStatusVar;
-                }
-                else if (key === "fullHousie") {
-                    tempStatusVar = FullHousieCheck(ticketData, roomNo);
-                    if(tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = false;
-                    winConditionsAckStatus[key] = tempStatusVar;
-                }
+
+                socketWinConditionsCheckLimitCount[socket.id][key] += 1;
             }
         }
     });
 
     return winConditionsAckStatus;
+}
+
+const getWinConditionsAvailableStatusNames = (roomID) => {
+    let roomWinConditionsAvailableStatusNames = { ...roomWinConditionsAvailableStatus[roomID] };
+    Object.keys(roomWinConditionsAvailableStatusNames).forEach((key) => {
+        if (socketNames[roomWinConditionsAvailableStatusNames[key]]) {
+            roomWinConditionsAvailableStatusNames = { ...roomWinConditionsAvailableStatusNames, [key]: socketNames[roomWinConditionsAvailableStatusNames[key]] }
+        }
+    });
+    return roomWinConditionsAvailableStatusNames;
 }
 
 io.on("connection", (socket) => {
@@ -298,7 +324,7 @@ io.on("connection", (socket) => {
         roomSockets[randomRoomID] = [socket.id]
         socketRoom[socket.id] = randomRoomID;
         socketNames[socket.id] = data.hostName;
-        
+
         //ticket generation for host socket in room.
         socketTickets[socket.id] = genTickets(data.noTickets);
 
@@ -309,6 +335,15 @@ io.on("connection", (socket) => {
             middleRow: true,
             lastRow: true,
             fullHousie: true
+        };
+
+        //initializing limitChecker for checking winCondition by player / socket / client.
+        socketWinConditionsCheckLimitCount[socket.id] = {
+            earlyFive: 0,
+            topRow: 0,
+            middleRow: 0,
+            lastRow: 0,
+            fullHousie: 0
         };
         roomsAvailable.push(randomRoomID);
 
@@ -341,11 +376,20 @@ io.on("connection", (socket) => {
             socketNames[socket.id] = data.playerName;
             socketRoom[socket.id] = data.roomID;
             socketTickets[socket.id] = genTickets(data.noTickets);
+
+            //initializing limitChecker for checking winCondition by player / socket / client.    
+            socketWinConditionsCheckLimitCount[socket.id] = {
+                earlyFive: 0,
+                topRow: 0,
+                middleRow: 0,
+                lastRow: 0,
+                fullHousie: 0
+            };
             console.log(roomSockets);
             socket.join(data.roomID)
 
             io.to(socket.id).emit("JOIN_ROOM_ACK");
-
+            console.log(getRoomPlayers(data.roomID));
             //emitting success of socket/client to join the room to all the players in the room by sending updated playernames in room list.
             io.to(data.roomID).emit("ROOM_PLAYER_NAMES", {
                 roomPlayerNames: getRoomPlayers(data.roomID)
@@ -413,11 +457,14 @@ io.on("connection", (socket) => {
 
     socket.on("WIN_CONDITIONS_CHECK_REQ", (data) => {
         try {
-            io.to(socket.id).emit("WIN_CONDITIONS_CHECK_ACK",{
-                winConditionsAck : checkWinConditions(data.winConditionsCheckReq, data.ticketData, socketRoom[socket.id])
+            io.to(socket.id).emit("WIN_CONDITIONS_CHECK_ACK", {
+                winConditionsAck: checkWinConditions(data.winConditionsCheckReq, data.ticketData, socket),
+                winConditionsCheckLimitCount: socketWinConditionsCheckLimitCount[socket.id]
             });
+
+            //calculating & sending the win available status, with names of players who won the condition if anyone won.
             io.to(socketRoom[socket.id]).emit("WIN_CONDITIONS_AVAILABLE_STATUS", {
-                curWinConditionsAvailable : roomWinConditionsAvailableStatus[socketRoom[socket.id]]
+                curWinConditionsAvailable: getWinConditionsAvailableStatusNames(socketRoom[socket.id])
             })
         } catch (err) {
             console.log("Socket/ client didn't join any room yet");
@@ -425,7 +472,44 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        console.log(`socket with ID : ${socket.id} disconnected..`);
+
+        try {
+            console.log(socket.id);
+            delete socketNames[socket.id];
+            delete socketTickets[socket.id];
+            delete socketWinConditionsCheckLimitCount[socket.id];
+
+            //removing socket from roomSockets list.
+            console.log(roomSockets);
+            for (let i = 0; i < roomSockets[socketRoom[socket.id]].length; i++) {
+                if (roomSockets[socketRoom[socket.id]][i] === socket.id) {
+                    //The left socket is a host, hence auto timer button should be switched on if anyone is available in that room.
+                    if (i === 0) {
+                        console.log("host-left");
+                        io.to(socketRoom[socket.id]).emit("HOST_LEFT");
+                    }
+                    roomSockets[socketRoom[socket.id]].splice(i, 1);
+                }
+            }
+
+            //If no player is present in the room
+            if (roomSockets[socketRoom[socket.id]].length === 0) {
+                delete roomBoard[socketRoom[socket.id]];
+                delete roomSequence[socketRoom[socket.id]];
+                delete roomLastSequenceNumberReq[socketRoom[socket.id]];
+                delete roomSockets[socketRoom[socket.id]];
+                // not deleting roomWinConditionsAvailableStatus for a room just to preserve the gameState of room for future use
+                // delete roomWinConditionsAvailableStatus[socketRoom[socket.id]];
+                roomsAvailable.filter((roomID) => roomID !== socketRoom[socket.id]);
+            }
+
+            //deleting socketRoom at last as it's used very frequently to delete all the remaining things.
+            delete socketRoom[socket.id]
+
+            console.log(`socket with ID : ${socket.id} disconnected..`);
+        } catch (err) {
+            console.log(err);
+        }
     })
 
 });
@@ -455,9 +539,17 @@ server.listen(PORT, () => {
 //need to check for some state problem in ticket counts receiving in Ticket.js File [✔]
 //need to write logic for ticketGen[✔]
 //need to change the design for Tickets.js & Ticket.js[✔]
-//Header needs to be written using material-ui or react-bootstrap 
-// Decided for writing entire front-end with Material-UI
-// written logic for ticket validation and checking of availablity of winConditions.[✔]
+//Header needs to be written using material-ui or react-bootstrap.
+//Decided for writing entire front-end with Material-UI.
+//written logic for ticket validation and checking of availablity of winConditions.[✔]
+//need to write Color Changing Logic for cells in tambola tickets.[✔]
+//win conditions check -> limit no. of times.[✔]
+//win conditions player name display next to condition.[✔]
+//after winner declared -> redirect to another page and show podium. [✔] 
+// need to do some front end work for game room and podium page.
+// client leave remove all data belonging to him.
+//host leave -> auto number gen.
+//player / host leave -> game restore (todo later)
 
 
 

@@ -71,7 +71,7 @@ const Tickets = () => {
         <>
             {
                 tickets && tickets.map((ticket, ticketIndex) => {
-                    return <Ticket key={ticketIndex} data={ticket} handleTicketNumberClicked={(row, col) => handleTicketNumberClicked(ticketIndex, row, col)} />
+                    return <Ticket key={ticketIndex} data={ticket} ticketIndex = {ticketIndex} handleTicketNumberClicked={(row, col) => handleTicketNumberClicked(ticketIndex, row, col)} />
                 })
             }
         </>

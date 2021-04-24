@@ -10,8 +10,8 @@ const usePlayerNames = () => {
 
 
     const handlePlayerNames = (data) => {
+        console.log(roomPlayerNames,1);
         setRoomPlayerNames(data.roomPlayerNames)
-        console.log(roomPlayerNames);
     }
 
     useEffect(() => {

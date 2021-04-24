@@ -1,31 +1,32 @@
-import {Link} from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
+import Navbar from 'react-bootstrap/Navbar';
+import Nav from 'react-bootstrap/Nav';
+// import NavDropdown from 'react-bootstrap/NavDropdown';
+import Button from '@material-ui/core/Button';
 
 const Header = () => {
+    const history = useHistory();
     return (
-        <div className="header">
-            <nav className="navbar navbar-expand-lg navbar-dark bg-dark" id="top-navbar">
-                <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                    <span className="navbar-toggler-icon"></span>
-                </button>
-                <div className="collapse navbar-collapse justify-content-between" id="navbarNavDropdown">
-                    <ul className="navbar-nav">
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/">Home <span className="sr-only">(current)</span></Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/rules">Rules</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/play">Play</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/support">Support</Link>
-                        </li>
-                    </ul>
-                    {/* <div><button class="btn btn-light" id="toggle-theme-btn">Light</button></div> */}
-                </div>
-            </nav>
-        </div>
+        <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
+            {/* <Navbar.Brand>React-Bootstrap</Navbar.Brand> */}
+            <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+            <Navbar.Collapse id="responsive-navbar-nav">
+                <Nav className="mr-auto">
+                    <div className="mr-auto"><Button onClick = {() => history.push("/")}><Nav.Link>Home</Nav.Link></Button></div>
+                    <div className="mr-auto"><Button onClick = {() => history.push("/rules")}><Nav.Link>Rules</Nav.Link></Button></div>
+                    <div className="mr-auto"><Button onClick = {() => history.push("/play")}><Nav.Link>Play</Nav.Link></Button></div>
+                    <div className="mr-auto"><Button onClick = {() => history.push("/support")}><Nav.Link>Support</Nav.Link></Button></div>
+                </Nav>
+
+                {/* Might use this lower Nav when implementing dark mode for this game! */}
+                {/* <Nav>
+                    <Nav.Link href="#deets">More deets</Nav.Link>
+                    <Nav.Link eventKey={2} href="#memes">
+                        Dank memes
+                    </Nav.Link>
+                </Nav> */}
+            </Navbar.Collapse>
+        </Navbar>
     );
 }
 
