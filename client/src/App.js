@@ -1,5 +1,5 @@
 import Header from './Header';
-import Footer from './Footer';
+// import Footer from './Footer';
 import Home from './Home';
 import Rules from './Rules';
 import Support from './Support';

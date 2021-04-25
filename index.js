@@ -588,6 +588,8 @@ server.listen(PORT, () => {
 //host leave -> auto number gen.[✔]
 //need to implement point system.[✔]
 //need to implement show board modal with point deduction.[✔]
+//need to make players aware if someone won a winCondition by sound or something with bang.
+//need to fix footer issue in mobile (sometimes also pc) (todo later)
 //player / host leave -> game restore (todo later)
 
 

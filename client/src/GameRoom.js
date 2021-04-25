@@ -22,21 +22,15 @@ const GameRoom = () => {
     }, [winConditionsAvailableStatus])
 
     return (
-        <div className="d-flex justify-content-center align-items-center">
-            <div style={{ border: "2px solid red", padding: "10vh" }}>
-                <div style={{ float: "right" }}><PointsDisplay /></div>
-                <LiveNumDisplay />
-                <br />
-                <PlayersDisplayList />
-                <ShowBoard />
-                <Tickets />
-                <div className="d-flex justify-content-center">
-                    <div>
-                        <WinCombo />
-                    </div>
-                </div>
-            </div>
-        </div>
+        <>
+            <div style={{ float: "right" }}><PointsDisplay /></div>
+            <LiveNumDisplay />
+            <br />
+            <PlayersDisplayList />
+            <ShowBoard />
+            <Tickets />
+            <WinCombo />
+        </>
     );
 }
 
