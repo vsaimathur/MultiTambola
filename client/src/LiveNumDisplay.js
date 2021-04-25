@@ -28,7 +28,7 @@ const LiveNumDisplay = () => {
     const handleSwitchStateChanged = () => {
         setSwitchStateOn((prevState) => !prevState);
     }
-    
+
     //As host left only way to continue game is to make timer button on.
     const handleHostLeft = () => {
         console.log("host-left-switch-on");
@@ -62,14 +62,18 @@ const LiveNumDisplay = () => {
         socket.on("HOST_LEFT", handleHostLeft);
 
         return () => socket.off("HOST_LEFT", handleHostLeft);
-    },[socket]);
+    }, [socket]);
 
     return (
         <>
-            <Typography variant="h2" color="secondary">{curLiveNumGen}</Typography>
-            <Typography variant="h5" color="primary">{prevLiveNumGen}</Typography>
-            {playerStatus === 0 && <Button variant="contained" color="primary" onClick={handleGenerateButtonClicked}>Generate</Button>}
-            {playerStatus === 0 && <Switch checked={switchStateOn} onChange={handleSwitchStateChanged} inputProps={{ 'aria-label': 'secondary checkbox' }} />}
+            <Typography variant="h2" color="secondary" align="center">{curLiveNumGen}</Typography>
+            <Typography variant="h5" color="primary" align="center">{prevLiveNumGen}</Typography>
+            <div className="d-flex justify-content-center">
+                <div>
+                    {playerStatus === 0 && <Button variant="contained" color="primary" onClick={handleGenerateButtonClicked}>Generate</Button>}
+                    {playerStatus === 0 && <Switch checked={switchStateOn} onChange={handleSwitchStateChanged} inputProps={{ 'aria-label': 'secondary checkbox' }} />}
+                </div>
+            </div>
         </>
     );
 }

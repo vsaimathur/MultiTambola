@@ -1,21 +1,21 @@
 * {margin: 0%; padding: 0%; box-sizing: border-box; font-family: "Comic Sans MS";}
 
 html, body {
-    height: 100vh;
+    height: 100%;
 }
 
 .total{
-    height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
 }
-
+#root { height : 100%; }
 .main-content {
     height: 100%;
 }
 
 .center-content {
-    height: calc(100% - 32px);
+    height: calc(100% - 42px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -35,9 +35,9 @@ html, body {
     width: 35vh;
 }
 
-.footer {
+/* .footer {
     margin-top: auto;
-}
+} */
 
 /* custom ripple code from https://web.archive.org/web/20180826093719/http://www.learncodeonline.in:80/blog/getting-perfect-ripple-effect-using-css/ 
  for tambola cells ripple effect*/

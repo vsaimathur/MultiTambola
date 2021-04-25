@@ -42,31 +42,39 @@ const ShowBoard = () => {
     }, [socket, openBoard])
 
     return (
-        <div>
-            <Button variant="contained" color="primary" onClick={handleShowBoardClicked}>
-                Show Board <PointsDisplay />
-            </Button>
-            {openBoard && <Table id="modal-descp" variant="dark" bordered style={{ width: "40%", position: "absolute", right: "5vw", bottom: "10vh" }}>
-                <tbody>
-                    {
-                        roomBoard.map((row, index_r) => {
-                            return (
-                                <tr key={index_r}>
-                                    {
-                                        row.map((col, index_c) => {
-                                            //if there is no number in cell i.e., 0 we'll not show it, also not write onClick for it
-                                            //which avoids complications like getting 0 added into row list and checked at server side
-                                            //when a win condition is clicked.
-                                            return (<td key={index_c} className={`p-1 text-center ripple ${roomBoardDataLive.length !== 0 && roomBoardDataLive[index_r * 10 + index_c] ? "bg-success" : ""}`} style={{ cursor: "pointer" }}>{col}</td>)
-                                        })
-                                    }
-                                </tr>
-                            )
-                        })
-                    }
-                </tbody>
-            </Table>}
-        </div>
+        <>
+            <div className="d-flex justify-content-center">
+                <div>
+                    <Button variant="contained" color="primary" onClick={handleShowBoardClicked}>
+                        Show Board <PointsDisplay />
+                    </Button>
+                </div>
+            </div>
+            <div className="d-flex justify-content-center">
+                <div>
+                    {openBoard && <Table id="modal-descp" variant="dark" bordered style={{ width: "40%" }}>
+                        <tbody>
+                            {
+                                roomBoard.map((row, index_r) => {
+                                    return (
+                                        <tr key={index_r}>
+                                            {
+                                                row.map((col, index_c) => {
+                                                    //if there is no number in cell i.e., 0 we'll not show it, also not write onClick for it
+                                                    //which avoids complications like getting 0 added into row list and checked at server side
+                                                    //when a win condition is clicked.
+                                                    return (<td key={index_c} className={`p-1 text-center ripple ${roomBoardDataLive.length !== 0 && roomBoardDataLive[index_r * 10 + index_c] ? "bg-success" : ""}`} style={{ cursor: "pointer" }}>{col}</td>)
+                                                })
+                                            }
+                                        </tr>
+                                    )
+                                })
+                            }
+                        </tbody>
+                    </Table>}
+                </div>
+            </div>
+        </>
     );
 }
 

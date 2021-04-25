@@ -10,7 +10,7 @@ var MIN_ROOMID_LEN = 100000;
 var roomBoard = {}; // {roomNumber : [0,0,0,0, .... 90 times for board]}
 var roomSequence = {}; // {roomNumber : [87,32, ...... 90 numbers for sequence]}
 var roomLastSequenceNumberReq = {}; // {roomNumber : seqNumberLast Requested}
-var MAX_CHECK_LIMIT = 2; // limit for a socket / player to request for checking a win condition.
+var MAX_CHECK_LIMIT = 3; // limit for a socket / player to request for checking a win condition.
 var socketWinConditionsCheckLimitCount = {};
 var socketPoints = {}; // {socketid : points}
 /*{ socket : winConditionsCheckLimit } -> winConditionsCheckLimit => {
@@ -586,8 +586,8 @@ server.listen(PORT, () => {
 //need to do some front end work for game room and podium page.[✔]
 //client leave remove all data belonging to him.[✔]
 //host leave -> auto number gen.[✔]
-//need to implement point system.
-//need to implement show board modal with point deduction.
+//need to implement point system.[✔]
+//need to implement show board modal with point deduction.[✔]
 //player / host leave -> game restore (todo later)
 
 

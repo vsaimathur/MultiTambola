@@ -13,7 +13,7 @@ const WinCombo = () => {
     const { tickets } = useContext(TicketsDataContext);
     const { ticketStatusLive } = useContext(TicketLiveStatusContext);
     const { winConditionsAvailableStatus } = useContext(WinConditionsAvailableContext);
-
+    const MAX_CHECK_LIMIT = 3;
     const [winConditionsClickedStatus, setWinConditionsClickedStatus] = useState(false);
     const [winConditionsCheckLimitCount, setWinConditionsCheckLimitCount] = useState({
         earlyFive: 0,
@@ -76,46 +76,76 @@ const WinCombo = () => {
 
     return (
         <>
-            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["earlyFive"] === true && winConditionsCheckLimitCount["earlyFive"] <2 ? false : true} value="earlyFive" onClick={() => {
+            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["earlyFive"] === true && winConditionsCheckLimitCount["earlyFive"] < MAX_CHECK_LIMIT ? false : true} value="earlyFive" onClick={() => {
                 setWinConditionsStatus({ ...winCondtionsStatus, "earlyFive": true });
                 setWinConditionsClickedStatus(true);
             }}>
                 Early Five
             </Button>
-            {!(winConditionsAvailableStatus["earlyFive"] === true) && <Typography display = "inline" variant="body1" className="text-success">{winConditionsAvailableStatus["earlyFive"]}</Typography>}
+            {(winConditionsAvailableStatus["earlyFive"] === true) && winConditionsCheckLimitCount["earlyFive"] !== 0 &&
+                <Typography display = "inline" className = "text-danger">
+                    <ClearIcon /> {winConditionsCheckLimitCount["earlyFive"]}/{MAX_CHECK_LIMIT}
+                </Typography>
+            }
+            {!(winConditionsAvailableStatus["earlyFive"] === true) && <Typography display="inline" variant="body1" className="text-success">{winConditionsAvailableStatus["earlyFive"]}</Typography>}
             <br />
-            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["topRow"] === true  && winConditionsCheckLimitCount["topRow"] <2 ? false : true} value="topRow" onClick={() => {
+            <br />
+            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["topRow"] === true && winConditionsCheckLimitCount["topRow"] < MAX_CHECK_LIMIT ? false : true} value="topRow" onClick={() => {
                 setWinConditionsStatus({ ...winCondtionsStatus, "topRow": true });
                 setWinConditionsClickedStatus(true);
             }}>
                 Top Row
             </Button>
-            {!(winConditionsAvailableStatus["topRow"] === true) && <Typography display = "inline" variant="body1" className="text-success">{winConditionsAvailableStatus["topRow"]}</Typography>}
+            {(winConditionsAvailableStatus["topRow"] === true) && winConditionsCheckLimitCount["topRow"] !== 0 &&
+                <Typography display = "inline" className = "text-danger">
+                    <ClearIcon /> {winConditionsCheckLimitCount["topRow"]}/{MAX_CHECK_LIMIT}
+                </Typography>
+            }
+            {!(winConditionsAvailableStatus["topRow"] === true) && <Typography display="inline" variant="body1" className="text-success">{winConditionsAvailableStatus["topRow"]}</Typography>}
             <br />
-            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["middleRow"] === true && winConditionsCheckLimitCount["middleRow"] <2 ? false : true} value="middleRow" onClick={() => {
+            <br />
+            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["middleRow"] === true && winConditionsCheckLimitCount["middleRow"] < MAX_CHECK_LIMIT ? false : true} value="middleRow" onClick={() => {
                 setWinConditionsStatus({ ...winCondtionsStatus, "middleRow": true });
                 setWinConditionsClickedStatus(true);
             }}>
                 Middle Row
             </Button>
-            {!(winConditionsAvailableStatus["middleRow"] === true) && <Typography display = "inline" variant="body1" className="text-success">{winConditionsAvailableStatus["middleRow"]}</Typography>}
+            {(winConditionsAvailableStatus["middleRow"] === true) && winConditionsCheckLimitCount["middleRow"] !== 0 &&
+                <Typography display = "inline" className = "text-danger">
+                    <ClearIcon /> {winConditionsCheckLimitCount["middleRow"]}/{MAX_CHECK_LIMIT}
+                </Typography>
+            }
+            {!(winConditionsAvailableStatus["middleRow"] === true) && <Typography display="inline" variant="body1" className="text-success">{winConditionsAvailableStatus["middleRow"]}</Typography>}
             <br />
-            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["lastRow"] === true && winConditionsCheckLimitCount["lastRow"] <2 ? false : true} value="lastRow" onClick={() => {
+            <br />
+            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["lastRow"] === true && winConditionsCheckLimitCount["lastRow"] < MAX_CHECK_LIMIT ? false : true} value="lastRow" onClick={() => {
                 setWinConditionsStatus({ ...winCondtionsStatus, "lastRow": true });
                 setWinConditionsClickedStatus(true);
             }}>
                 Last Row
             </Button>
-            {!(winConditionsAvailableStatus["lastRow"] === true) && <Typography display = "inline" variant="body1" className="text-success">{winConditionsAvailableStatus["lastRow"]}</Typography>}
-            <br />         
-            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["fullHousie"] === true && winConditionsCheckLimitCount["fullHousie"] <2 ? false : true} value="fullHousie" onClick={() => {
+            {(winConditionsAvailableStatus["lastRow"] === true) && winConditionsCheckLimitCount["lastRow"] !== 0 &&
+                <Typography display = "inline" className = "text-danger">
+                    <ClearIcon /> {winConditionsCheckLimitCount["lastRow"]}/{MAX_CHECK_LIMIT}
+                </Typography>
+            }
+            {!(winConditionsAvailableStatus["lastRow"] === true) && <Typography display="inline" variant="body1" className="text-success">{winConditionsAvailableStatus["lastRow"]}</Typography>}
+            <br />
+            <br />
+            <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["fullHousie"] === true && winConditionsCheckLimitCount["fullHousie"] < MAX_CHECK_LIMIT ? false : true} value="fullHousie" onClick={() => {
                 setWinConditionsStatus({ ...winCondtionsStatus, "fullHousie": true });
                 setWinConditionsClickedStatus(true);
             }}>
                 Full Housie
             </Button>
-            {!(winConditionsAvailableStatus["fullHousie"] === true) && <Typography display = "inline" variant="body1" className="text-success">{winConditionsAvailableStatus["fullHousie"]}</Typography>}
-            <br /> 
+            {(winConditionsAvailableStatus["fullHousie"] === true) && winConditionsCheckLimitCount["fullHousie"] !== 0 &&
+                <Typography display = "inline" className = "text-danger">
+                    <ClearIcon /> {winConditionsCheckLimitCount["fullHousie"]}/{MAX_CHECK_LIMIT}
+                </Typography>
+            }
+            {!(winConditionsAvailableStatus["fullHousie"] === true) && <Typography display="inline" variant="body1" className="text-success">{winConditionsAvailableStatus["fullHousie"]}</Typography>}
+            <br />
+            <br />
 
         </>);
 }

@@ -32,7 +32,7 @@ const App = () => {
                                 <Route exact path="/podiumroom" component={PodiumRoom} />
                             </Switch>
                         </div>
-                        <Footer />
+                        {/* <Footer /> //some problem with it's position. (not getting stuck at bottom) */}
                     </div>
                 </Router>
             </ContextsProvider>
