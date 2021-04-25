@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { SocketContext } from "./contexts/Socket";
 import { TicketsDataContext } from "./contexts/useTicketsData";
 import { TicketLiveStatusContext } from "./contexts/useTicketStatusLive";
@@ -7,9 +7,9 @@ import Ticket from './Ticket';
 const Tickets = () => {
 
     const socket = useContext(SocketContext);
-    const {tickets,setTickets} = useContext(TicketsDataContext);
-    const {ticketStatusLive, setTicketStatusLive} = useContext(TicketLiveStatusContext);
-    const handleGetTickets = (data) => {   
+    const { tickets, setTickets } = useContext(TicketsDataContext);
+    const { ticketStatusLive, setTicketStatusLive } = useContext(TicketLiveStatusContext);
+    const handleGetTickets = (data) => {
 
         //getting the data of tickets.
         setTickets(data.tickets);
@@ -26,17 +26,17 @@ const Tickets = () => {
         }
         else {
             setTicketStatusLive([
-            [
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0]
-            ], 
-            [
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0]
-            ]
-        ])
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0]
+                ]
+            ])
         }
     }
 
@@ -62,16 +62,16 @@ const Tickets = () => {
 
         return () => socket.off("GET_TICKETS_ACK", handleGetTickets);
     }, [socket])
-    
+
     useEffect(() => {
         console.log(ticketStatusLive);
-    },[ticketStatusLive])
-    
+    }, [ticketStatusLive])
+
     return (
         <>
             {
                 tickets && tickets.map((ticket, ticketIndex) => {
-                    return <Ticket key={ticketIndex} data={ticket} ticketIndex = {ticketIndex} handleTicketNumberClicked={(row, col) => handleTicketNumberClicked(ticketIndex, row, col)} />
+                    return <Ticket key={ticketIndex} data={ticket} ticketIndex={ticketIndex} handleTicketNumberClicked={(row, col) => handleTicketNumberClicked(ticketIndex, row, col)} />
                 })
             }
         </>

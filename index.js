@@ -12,6 +12,7 @@ var roomSequence = {}; // {roomNumber : [87,32, ...... 90 numbers for sequence]}
 var roomLastSequenceNumberReq = {}; // {roomNumber : seqNumberLast Requested}
 var MAX_CHECK_LIMIT = 2; // limit for a socket / player to request for checking a win condition.
 var socketWinConditionsCheckLimitCount = {};
+var socketPoints = {}; // {socketid : points}
 /*{ socket : winConditionsCheckLimit } -> winConditionsCheckLimit => {
     earlyFive: 0,
     topRow: 0,
@@ -264,29 +265,44 @@ const checkWinConditions = (winConditionsCheckReq, ticketData, socket) => {
             if (winConditionsCheckReq[key]) {
                 if (socketWinConditionsCheckLimitCount[socket.id][key] < MAX_CHECK_LIMIT) {
                     if (key === "earlyFive") {
-                        tempStatusVar = EarlyFiveCheck(ticketData, roomNo);
-                        if (tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                        tempStatusVar = true || EarlyFiveCheck(ticketData, roomNo);
+                        if (tempStatusVar) {
+                            roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                            socketPoints[socket.id]+=5;
+                        }
                         winConditionsAckStatus[key] = tempStatusVar;
 
                     }
                     else if (key === "topRow") {
                         tempStatusVar = TopRowCheck(ticketData, roomNo);
-                        if (tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                        if (tempStatusVar) {
+                            roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                            socketPoints[socket.id]+=5;
+                        }
                         winConditionsAckStatus[key] = tempStatusVar;
                     }
                     else if (key === "middleRow") {
                         tempStatusVar = MiddleRowCheck(ticketData, roomNo);
-                        if (tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                        if (tempStatusVar) {
+                            roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                            socketPoints[socket.id]+=5;
+                        }
                         winConditionsAckStatus[key] = tempStatusVar;
                     }
                     else if (key === "lastRow") {
                         tempStatusVar = LastRowCheck(ticketData, roomNo);
-                        if (tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                        if (tempStatusVar) {
+                            roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                            socketPoints[socket.id]+=5;
+                        }
                         winConditionsAckStatus[key] = tempStatusVar;
                     }
                     else if (key === "fullHousie") {
                         tempStatusVar = FullHousieCheck(ticketData, roomNo);
-                        if (tempStatusVar) roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                        if (tempStatusVar) {
+                            roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
+                            socketPoints[socket.id]+=25;
+                        }
                         winConditionsAckStatus[key] = tempStatusVar;
                     }
                 } else {
@@ -328,6 +344,8 @@ io.on("connection", (socket) => {
         //ticket generation for host socket in room.
         socketTickets[socket.id] = genTickets(data.noTickets);
 
+        //initializing the default points for the player / socket.
+        socketPoints[socket.id] = 5;
         //initializing room winConditions State.
         roomWinConditionsAvailableStatus[randomRoomID] = {
             earlyFive: true,
@@ -434,6 +452,9 @@ io.on("connection", (socket) => {
                 curNumGen: roomSequence[socketRoom[socket.id]][data.sequenceNumber],
                 prevNumGen: roomSequence[socketRoom[socket.id]][data.sequenceNumber - 1]
             })
+            io.to(socketRoom[socket.id]).emit("BOARD_DATA_ACK", {
+                liveBoardData : roomBoard[socketRoom[socket.id]]
+            })
 
         } catch (err) {
             console.log("Room Sequnece/Board Not yet generated!");
@@ -443,6 +464,16 @@ io.on("connection", (socket) => {
     socket.on("GET_TICKETS_REQ", () => {
         io.to(socket.id).emit("GET_TICKETS_ACK", {
             tickets: socketTickets[socket.id]
+        })
+    })
+
+    socket.on("BOARD_DATA_REQ", () => {
+        socketPoints[socket.id] -= 5;
+        io.to(socket.id).emit("BOARD_DATA_ACK", {
+            liveBoardData : roomBoard[socketRoom[socket.id]]
+        })
+        io.to(socket.id).emit("PLAYER_POINTS_ACK", {
+            points : socketPoints[socket.id]
         })
     })
 
@@ -462,6 +493,11 @@ io.on("connection", (socket) => {
                 winConditionsCheckLimitCount: socketWinConditionsCheckLimitCount[socket.id]
             });
 
+            // emitting the no. of points the player currently has with him.
+            io.to(socket.id).emit("PLAYER_POINTS_ACK", {
+                points : socketPoints[socket.id]
+            })
+
             //calculating & sending the win available status, with names of players who won the condition if anyone won.
             io.to(socketRoom[socket.id]).emit("WIN_CONDITIONS_AVAILABLE_STATUS", {
                 curWinConditionsAvailable: getWinConditionsAvailableStatusNames(socketRoom[socket.id])
@@ -478,6 +514,7 @@ io.on("connection", (socket) => {
             delete socketNames[socket.id];
             delete socketTickets[socket.id];
             delete socketWinConditionsCheckLimitCount[socket.id];
+            delete socketPoints[socket.id];
 
             //removing socket from roomSockets list.
             console.log(roomSockets);
@@ -539,18 +576,19 @@ server.listen(PORT, () => {
 //need to check for some state problem in ticket counts receiving in Ticket.js File [✔]
 //need to write logic for ticketGen[✔]
 //need to change the design for Tickets.js & Ticket.js[✔]
-//Header needs to be written using material-ui or react-bootstrap.
+//Header needs to be written using material-ui or react-bootstrap.[✔]
 //Decided for writing entire front-end with Material-UI.
 //written logic for ticket validation and checking of availablity of winConditions.[✔]
 //need to write Color Changing Logic for cells in tambola tickets.[✔]
 //win conditions check -> limit no. of times.[✔]
 //win conditions player name display next to condition.[✔]
 //after winner declared -> redirect to another page and show podium. [✔] 
-// need to do some front end work for game room and podium page.
-// client leave remove all data belonging to him.
-//host leave -> auto number gen.
+//need to do some front end work for game room and podium page.[✔]
+//client leave remove all data belonging to him.[✔]
+//host leave -> auto number gen.[✔]
+//need to implement point system.
+//need to implement show board modal with point deduction.
 //player / host leave -> game restore (todo later)
-
 
 
 //** Problems & Temp Sol'n: */

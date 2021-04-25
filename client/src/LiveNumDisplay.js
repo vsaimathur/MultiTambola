@@ -13,7 +13,7 @@ const LiveNumDisplay = () => {
 
     const [generateButtonClicked, setGenerateButtonClicked] = useState(false);
     const [switchStateOn, setSwitchStateOn] = useState(false);
-    const EMIT_TIME_INTERVAL = 6000; //6sec
+    const EMIT_TIME_INTERVAL = 5000; //5sec
 
     const handleGenerateButtonClicked = () => {
         setGenerateButtonClicked(true);

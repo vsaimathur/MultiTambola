@@ -4,6 +4,7 @@ import { TicketsDataContext } from "./contexts/useTicketsData";
 import { TicketLiveStatusContext } from "./contexts/useTicketStatusLive";
 import { WinConditionsAvailableContext } from "./contexts/useWinConditionsAvailable";
 import { Button, Typography } from "@material-ui/core";
+import ClearIcon from '@material-ui/icons/Clear'; // cross symbol
 
 const WinCombo = () => {
 

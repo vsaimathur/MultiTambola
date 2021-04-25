@@ -5,6 +5,7 @@ import WinCombo from './WinCombo';
 import { useContext, useEffect } from "react";
 import { WinConditionsAvailableContext } from "./contexts/useWinConditionsAvailable";
 import {useHistory} from 'react-router-dom';
+import ShowBoard from "./ShowBoard";
 
 const GameRoom = () => {
 
@@ -22,6 +23,7 @@ const GameRoom = () => {
     return (
         <>
             <LiveNumDisplay />
+            <ShowBoard />
             <PlayersDisplayList />
             <Tickets />
             <WinCombo />

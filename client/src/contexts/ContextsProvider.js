@@ -5,6 +5,8 @@ import useTicketStatusLive, { TicketLiveStatusContext } from './useTicketStatusL
 import useTicketsData, { TicketsDataContext } from './useTicketsData';
 import useWinConditionsAvailable, { WinConditionsAvailableContext } from './useWinConditionsAvailable';
 import { createMuiTheme, ThemeProvider, CssBaseline } from '@material-ui/core';
+import usePointTracker, { PointTrackerContext } from './usePointTracker';
+import useRoomBoardDataLive, { RoomBoardDataLiveContext } from './useRoomBoardDataLive';
 
 const theme = createMuiTheme({
     typography: {
@@ -23,7 +25,11 @@ const ContextsProvider = ({ children }) => {
                                 <TicketsDataContext.Provider value={useTicketsData()}>
                                     <TicketLiveStatusContext.Provider value={useTicketStatusLive()}>
                                         <WinConditionsAvailableContext.Provider value={useWinConditionsAvailable()}>
-                                            {children}
+                                            <PointTrackerContext.Provider value={usePointTracker()}>
+                                                <RoomBoardDataLiveContext.Provider value={useRoomBoardDataLive()}>
+                                                    {children}
+                                                </RoomBoardDataLiveContext.Provider>
+                                            </PointTrackerContext.Provider>
                                         </WinConditionsAvailableContext.Provider>
                                     </TicketLiveStatusContext.Provider>
                                 </TicketsDataContext.Provider>

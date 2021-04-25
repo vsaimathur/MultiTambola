@@ -48,8 +48,8 @@ const CreateNewRoom = () => {
 
     //This handles the start of game
     const handleGameStartButton = () => {
-        console.log(1);
-        if (!roomCreationStatus || roomPlayerNames.length < 2) {
+        console.log(roomCreationStatus, roomPlayerNames.length);
+        if (!roomCreationStatus || roomPlayerNames.length < 0) {
             setGameStarted(false);
             return false;
         }
