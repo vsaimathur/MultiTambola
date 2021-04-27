@@ -2,10 +2,11 @@ import { useContext, useEffect, useState } from "react";
 import { PointTrackerContext } from "./contexts/usePointTracker";
 import { SocketContext } from "./contexts/Socket";
 import Table from 'react-bootstrap/Table';
-import { Button } from "@material-ui/core";
+import { Button, Typography } from "@material-ui/core";
 import { RoomBoardDataLiveContext } from "./contexts/useRoomBoardDataLive";
 import useTimeout from './useTimeout';
 import PointsDisplay from "./PointsDisplay";
+import MonetizationOnIcon from '@material-ui/icons/MonetizationOn'; //money coin symbol
 
 const ShowBoard = () => {
 
@@ -44,9 +45,12 @@ const ShowBoard = () => {
     return (
         <div>
             <Button variant="contained" color="primary" onClick={handleShowBoardClicked}>
-                Show Board <PointsDisplay />
+                Show Board
+                <Typography className={`${pointsLive === 0 ? "text-danger" : "text-warning"}`}>
+                    <MonetizationOnIcon /> {5}
+                </Typography>
             </Button>
-            {openBoard && <Table id="modal-descp" variant="dark" bordered style={{ width: "40%"}}>
+            {openBoard && <Table id="modal-descp" variant="dark" bordered style={{ width: "40%" }}>
                 <tbody>
                     {
                         roomBoard.map((row, index_r) => {

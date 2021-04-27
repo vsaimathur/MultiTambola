@@ -12,6 +12,7 @@ var roomSequence = {}; // {roomNumber : [87,32, ...... 90 numbers for sequence]}
 var roomLastSequenceNumberReq = {}; // {roomNumber : seqNumberLast Requested}
 var MAX_CHECK_LIMIT = 3; // limit for a socket / player to request for checking a win condition.
 var socketWinConditionsCheckLimitCount = {};
+var roomLastWinConditionUpdated = {}; // {roomNo : winConditionKey that last become unAvailable (i.e someone won it)};
 var socketPoints = {}; // {socketid : points}
 /*{ socket : winConditionsCheckLimit } -> winConditionsCheckLimit => {
     earlyFive: 0,
@@ -265,10 +266,11 @@ const checkWinConditions = (winConditionsCheckReq, ticketData, socket) => {
             if (winConditionsCheckReq[key]) {
                 if (socketWinConditionsCheckLimitCount[socket.id][key] < MAX_CHECK_LIMIT) {
                     if (key === "earlyFive") {
-                        tempStatusVar = true || EarlyFiveCheck(ticketData, roomNo);
+                        tempStatusVar = EarlyFiveCheck(ticketData, roomNo);
                         if (tempStatusVar) {
                             roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
-                            socketPoints[socket.id]+=5;
+                            socketPoints[socket.id] += 5;
+                            roomLastWinConditionUpdated[roomNo] = key;
                         }
                         winConditionsAckStatus[key] = tempStatusVar;
 
@@ -277,7 +279,8 @@ const checkWinConditions = (winConditionsCheckReq, ticketData, socket) => {
                         tempStatusVar = TopRowCheck(ticketData, roomNo);
                         if (tempStatusVar) {
                             roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
-                            socketPoints[socket.id]+=5;
+                            socketPoints[socket.id] += 5;
+                            roomLastWinConditionUpdated[roomNo] = key;
                         }
                         winConditionsAckStatus[key] = tempStatusVar;
                     }
@@ -285,7 +288,8 @@ const checkWinConditions = (winConditionsCheckReq, ticketData, socket) => {
                         tempStatusVar = MiddleRowCheck(ticketData, roomNo);
                         if (tempStatusVar) {
                             roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
-                            socketPoints[socket.id]+=5;
+                            socketPoints[socket.id] += 5;
+                            roomLastWinConditionUpdated[roomNo] = key;
                         }
                         winConditionsAckStatus[key] = tempStatusVar;
                     }
@@ -293,7 +297,8 @@ const checkWinConditions = (winConditionsCheckReq, ticketData, socket) => {
                         tempStatusVar = LastRowCheck(ticketData, roomNo);
                         if (tempStatusVar) {
                             roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
-                            socketPoints[socket.id]+=5;
+                            socketPoints[socket.id] += 5;
+                            roomLastWinConditionUpdated[roomNo] = key;
                         }
                         winConditionsAckStatus[key] = tempStatusVar;
                     }
@@ -301,7 +306,8 @@ const checkWinConditions = (winConditionsCheckReq, ticketData, socket) => {
                         tempStatusVar = FullHousieCheck(ticketData, roomNo);
                         if (tempStatusVar) {
                             roomWinConditionsAvailableStatus[roomNo][key] = socket.id;
-                            socketPoints[socket.id]+=25;
+                            socketPoints[socket.id] += 25;
+                            roomLastWinConditionUpdated[roomNo] = key;
                         }
                         winConditionsAckStatus[key] = tempStatusVar;
                     }
@@ -325,6 +331,12 @@ const getWinConditionsAvailableStatusNames = (roomID) => {
         }
     });
     return roomWinConditionsAvailableStatusNames;
+}
+
+const getFinalPodiumPlayersPoints = () => {
+    return Object.keys(socketNames).map((socketID, index) => {
+        return [socketNames[socketID], socketPoints[socketID]];
+    });
 }
 
 io.on("connection", (socket) => {
@@ -395,6 +407,19 @@ io.on("connection", (socket) => {
             socketRoom[socket.id] = data.roomID;
             socketTickets[socket.id] = genTickets(data.noTickets);
 
+            //initializing the default points for the player / socket.
+            socketPoints[socket.id] = 5;
+
+            //initializing room winConditions State.
+            roomWinConditionsAvailableStatus[randomRoomID] = {
+                earlyFive: true,
+                topRow: true,
+                middleRow: true,
+                lastRow: true,
+                fullHousie: true
+            };
+
+
             //initializing limitChecker for checking winCondition by player / socket / client.    
             socketWinConditionsCheckLimitCount[socket.id] = {
                 earlyFive: 0,
@@ -442,7 +467,7 @@ io.on("connection", (socket) => {
     })
 
     socket.on("LIVE_NUM_GEN_REQ", (data) => {
-        try {
+        // try {
 
             //recoding the last sequnece number requested by client in a purticular room.
             roomLastSequenceNumberReq[socketRoom[socket.id]] = data.sequenceNumber;
@@ -453,12 +478,12 @@ io.on("connection", (socket) => {
                 prevNumGen: roomSequence[socketRoom[socket.id]][data.sequenceNumber - 1]
             })
             io.to(socketRoom[socket.id]).emit("BOARD_DATA_ACK", {
-                liveBoardData : roomBoard[socketRoom[socket.id]]
+                liveBoardData: roomBoard[socketRoom[socket.id]]
             })
 
-        } catch (err) {
-            console.log("Room Sequnece/Board Not yet generated!");
-        }
+        // } catch (err) {
+        //     console.log("Room Sequnece/Board Not yet generated!");
+        // }
     })
 
     socket.on("GET_TICKETS_REQ", () => {
@@ -470,10 +495,10 @@ io.on("connection", (socket) => {
     socket.on("BOARD_DATA_REQ", () => {
         socketPoints[socket.id] -= 5;
         io.to(socket.id).emit("BOARD_DATA_ACK", {
-            liveBoardData : roomBoard[socketRoom[socket.id]]
+            liveBoardData: roomBoard[socketRoom[socket.id]]
         })
         io.to(socket.id).emit("PLAYER_POINTS_ACK", {
-            points : socketPoints[socket.id]
+            points: socketPoints[socket.id]
         })
     })
 
@@ -487,25 +512,33 @@ io.on("connection", (socket) => {
     // })
 
     socket.on("WIN_CONDITIONS_CHECK_REQ", (data) => {
-        try {
+        // try {
             io.to(socket.id).emit("WIN_CONDITIONS_CHECK_ACK", {
                 winConditionsAck: checkWinConditions(data.winConditionsCheckReq, data.ticketData, socket),
                 winConditionsCheckLimitCount: socketWinConditionsCheckLimitCount[socket.id]
             });
 
+            console.log(socketPoints[socket.id]);
             // emitting the no. of points the player currently has with him.
             io.to(socket.id).emit("PLAYER_POINTS_ACK", {
-                points : socketPoints[socket.id]
+                points: socketPoints[socket.id]
             })
 
             //calculating & sending the win available status, with names of players who won the condition if anyone won.
             io.to(socketRoom[socket.id]).emit("WIN_CONDITIONS_AVAILABLE_STATUS", {
-                curWinConditionsAvailable: getWinConditionsAvailableStatusNames(socketRoom[socket.id])
+                curWinConditionsAvailable: getWinConditionsAvailableStatusNames(socketRoom[socket.id]),
+                lastWinConditionUpdated: roomLastWinConditionUpdated[socketRoom[socket.id]]
             })
-        } catch (err) {
-            console.log("Socket/ client didn't join any room yet");
-        }
+        // } catch (err) {
+        //     console.log("Socket/ client didn't join any room yet");
+        // }
     });
+
+    socket.on("GET_FINAL_PLAYERS_POINTS_REQ", () => {
+        io.to(socketRoom[socket.id]).emit("GET_FINAL_PLAYERS_POINTS_ACK", {
+            finalPlayersPoints : getFinalPodiumPlayersPoints()
+        })
+    })
 
     socket.on("disconnect", () => {
 
@@ -588,7 +621,11 @@ server.listen(PORT, () => {
 //host leave -> auto number gen.[✔]
 //need to implement point system.[✔]
 //need to implement show board modal with point deduction.[✔]
-//need to make players aware if someone won a winCondition by sound or something with bang.
+//need to make players aware if someone won a winCondition by sound or something with bang.[✔]
+//fixed bang update popup which contains info about all winConditions. [✔]
+//fixed icon money amount next to show board icon.[✔]
+//Improved UI of podium room.[✔]
+// resolve big about the last number in board.
 //need to fix footer issue in mobile (sometimes also pc) (todo later)
 //player / host leave -> game restore (todo later)
 

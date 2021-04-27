@@ -5,6 +5,7 @@ import { TicketLiveStatusContext } from "./contexts/useTicketStatusLive";
 import { WinConditionsAvailableContext } from "./contexts/useWinConditionsAvailable";
 import { Button, Typography } from "@material-ui/core";
 import ClearIcon from '@material-ui/icons/Clear'; // cross symbol
+import useTimeout from './useTimeout';
 
 const WinCombo = () => {
 
@@ -12,8 +13,9 @@ const WinCombo = () => {
 
     const { tickets } = useContext(TicketsDataContext);
     const { ticketStatusLive } = useContext(TicketLiveStatusContext);
-    const { winConditionsAvailableStatus } = useContext(WinConditionsAvailableContext);
+    const { winConditionsAvailableStatus, winDisplayStatus, setWinDisplayStatus, lastWinConditionUpdated } = useContext(WinConditionsAvailableContext);
     const MAX_CHECK_LIMIT = 3;
+    const MAX_WIN_STATUS_DISPLAY_DURATION = 3000; //3sec
     const [winConditionsClickedStatus, setWinConditionsClickedStatus] = useState(false);
     const [winConditionsCheckLimitCount, setWinConditionsCheckLimitCount] = useState({
         earlyFive: 0,
@@ -58,6 +60,12 @@ const WinCombo = () => {
         console.log(data.winConditionsCheckLimitCount);
     }
 
+    const handleShowWinConditionCompletedStatus = () => {
+        setWinDisplayStatus(false);
+    }
+
+    //timeout for hiding the winConditionCompletion status message dialog.
+    useTimeout(handleShowWinConditionCompletedStatus, winDisplayStatus ? MAX_WIN_STATUS_DISPLAY_DURATION : null)
 
     useEffect(() => {
 
@@ -76,6 +84,16 @@ const WinCombo = () => {
 
     return (
         <>
+            {winDisplayStatus &&
+                <div className="bg-info" style={{ width: "300px", height: "300px", padding: "10vh", position: "absolute", left: "50%", marginLeft: "-150px", top: "50%", marginTop: "-150px" }}>
+                    <div className="text-white text-center text-capitalize">
+                        <Typography variant="h4">{lastWinConditionUpdated} Completed!</Typography>
+                        <br />
+                        <br />
+                        <Typography variant="body1">{winConditionsAvailableStatus[lastWinConditionUpdated]} won {lastWinConditionUpdated}</Typography>
+                    </div>
+                </div>
+            }
             <Button variant="contained" color="primary" disabled={winConditionsAvailableStatus["earlyFive"] === true && winConditionsCheckLimitCount["earlyFive"] < MAX_CHECK_LIMIT ? false : true} value="earlyFive" onClick={() => {
                 setWinConditionsStatus({ ...winCondtionsStatus, "earlyFive": true });
                 setWinConditionsClickedStatus(true);
@@ -83,7 +101,7 @@ const WinCombo = () => {
                 Early Five
             </Button>
             {(winConditionsAvailableStatus["earlyFive"] === true) && winConditionsCheckLimitCount["earlyFive"] !== 0 &&
-                <Typography display = "inline" className = "text-danger">
+                <Typography display="inline" className="text-danger">
                     <ClearIcon /> {winConditionsCheckLimitCount["earlyFive"]}/{MAX_CHECK_LIMIT}
                 </Typography>
             }
@@ -97,7 +115,7 @@ const WinCombo = () => {
                 Top Row
             </Button>
             {(winConditionsAvailableStatus["topRow"] === true) && winConditionsCheckLimitCount["topRow"] !== 0 &&
-                <Typography display = "inline" className = "text-danger">
+                <Typography display="inline" className="text-danger">
                     <ClearIcon /> {winConditionsCheckLimitCount["topRow"]}/{MAX_CHECK_LIMIT}
                 </Typography>
             }
@@ -111,7 +129,7 @@ const WinCombo = () => {
                 Middle Row
             </Button>
             {(winConditionsAvailableStatus["middleRow"] === true) && winConditionsCheckLimitCount["middleRow"] !== 0 &&
-                <Typography display = "inline" className = "text-danger">
+                <Typography display="inline" className="text-danger">
                     <ClearIcon /> {winConditionsCheckLimitCount["middleRow"]}/{MAX_CHECK_LIMIT}
                 </Typography>
             }
@@ -125,7 +143,7 @@ const WinCombo = () => {
                 Last Row
             </Button>
             {(winConditionsAvailableStatus["lastRow"] === true) && winConditionsCheckLimitCount["lastRow"] !== 0 &&
-                <Typography display = "inline" className = "text-danger">
+                <Typography display="inline" className="text-danger">
                     <ClearIcon /> {winConditionsCheckLimitCount["lastRow"]}/{MAX_CHECK_LIMIT}
                 </Typography>
             }
@@ -139,7 +157,7 @@ const WinCombo = () => {
                 Full Housie
             </Button>
             {(winConditionsAvailableStatus["fullHousie"] === true) && winConditionsCheckLimitCount["fullHousie"] !== 0 &&
-                <Typography display = "inline" className = "text-danger">
+                <Typography display="inline" className="text-danger">
                     <ClearIcon /> {winConditionsCheckLimitCount["fullHousie"]}/{MAX_CHECK_LIMIT}
                 </Typography>
             }

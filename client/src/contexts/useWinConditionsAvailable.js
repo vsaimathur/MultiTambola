@@ -13,8 +13,19 @@ const useWinConditionsAvailable = () => {
         fullHousie: true
     });
 
+    const [winDisplayStatus, setWinDisplayStatus] = useState(false);
+    const [lastWinConditionUpdated, setLastWinConditionUpdated] = useState(false);
+
     const handleWinConditionsAvailableStatus = (data) => {
         setWinConditionsAvailableStatus(data.curWinConditionsAvailable);
+        //checking if any key has some name as value, i.e somebody completed winCondition
+        setLastWinConditionUpdated((prevVal) => {
+            if(prevVal !== data.lastWinConditionUpdated) {
+                setWinDisplayStatus(true);
+                return data.lastWinConditionUpdated
+            }
+            else return prevVal;
+        })
     }
 
     useEffect(() => {
@@ -29,7 +40,7 @@ const useWinConditionsAvailable = () => {
         return () => socket.off("WIN_CONDITIONS_AVAILABLE_STATUS", handleWinConditionsAvailableStatus);
     }, [socket])
 
-    return {winConditionsAvailableStatus};
+    return {winConditionsAvailableStatus, winDisplayStatus, setWinDisplayStatus, lastWinConditionUpdated};
 }
  
 export default useWinConditionsAvailable;
