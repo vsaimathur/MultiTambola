@@ -13,7 +13,7 @@ const Play = () => {
                     <div className="text-center text-success">What to do ?</div>
                     <br/>
                     <Button id="create-room-button" variant = "contained" color = "primary" onClick = {() => history.push("/createnewroom")}>Create Room</Button>
-                    <br />
+                    <br />  
                     <br />
                     <Button id="join-room-button" variant = "contained" color = "primary" onClick = {() => history.push("/joinroom")}>Join Room</Button>
                 </div>

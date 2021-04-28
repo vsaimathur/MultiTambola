@@ -14,7 +14,7 @@ const useWinConditionsAvailable = () => {
     });
 
     const [winDisplayStatus, setWinDisplayStatus] = useState(false);
-    const [lastWinConditionUpdated, setLastWinConditionUpdated] = useState(false);
+    const [lastWinConditionUpdated, setLastWinConditionUpdated] = useState();
 
     const handleWinConditionsAvailableStatus = (data) => {
         setWinConditionsAvailableStatus(data.curWinConditionsAvailable);
