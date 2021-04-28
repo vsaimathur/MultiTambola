@@ -1,43 +1,13 @@
 * {margin: 0%; padding: 0%; box-sizing: border-box; font-family: "Comic Sans MS";}
 
-html, body {
+html, body, #root, .App, .total{
     height: 100%;
 }
 
-.total{
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-#root { height : 100%; }
 .main-content {
-    height: 100%;
+    height: calc(100% - 68px); 
+    /* 68px is navbar height */
 }
-
-.center-content {
-    height: calc(100% - 42px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.game-maker-buttons {
-    border : 2px solid red;
-    padding: 10vh;
-}
-
-#create-room-button {
-    width: 35vh;
-}
-
-#join-room-button {
-    width: 35vh;
-}
-
-/* .footer {
-    margin-top: auto;
-} */
 
 /* custom ripple code from https://web.archive.org/web/20180826093719/http://www.learncodeonline.in:80/blog/getting-perfect-ripple-effect-using-css/ 
  for tambola cells ripple effect*/

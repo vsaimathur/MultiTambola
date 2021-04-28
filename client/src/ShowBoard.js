@@ -5,7 +5,6 @@ import Table from 'react-bootstrap/Table';
 import { Button, Typography } from "@material-ui/core";
 import { RoomBoardDataLiveContext } from "./contexts/useRoomBoardDataLive";
 import useTimeout from './useTimeout';
-import PointsDisplay from "./PointsDisplay";
 import MonetizationOnIcon from '@material-ui/icons/MonetizationOn'; //money coin symbol
 
 const ShowBoard = () => {

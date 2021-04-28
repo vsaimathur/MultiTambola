@@ -6,7 +6,7 @@ import Table from "react-bootstrap/Table";
 const PodiumRoom = () => {
     const socket = useContext(SocketContext);
     const [playersPoints, setPlayersPoints] = useState(null);
-    const NO_PLAYERS_PODIUM = 8;
+    const NO_PLAYERS_PODIUM = 10;
 
     const handleFinalPlayersPointsAck = (data) => {
         console.log(data.finalPlayersPoints);
@@ -37,13 +37,13 @@ const PodiumRoom = () => {
                         playersPoints.map((playerArr, index) => {
                             if (index < NO_PLAYERS_PODIUM) {
                                 return (<>
-                                    <tr>
+                                    <tr key = {index}>
                                         <td className = "ripple">{index + 1}</td>
                                         <td className = "ripple">{playerArr[0]}</td>
                                         <td className = "ripple">{playerArr[1]}</td>
                                     </tr>
                                 </>)
-                            }
+                            } else return false;
                         })
                     }
                 </tbody>

@@ -475,7 +475,8 @@ io.on("connection", (socket) => {
             roomBoard[socketRoom[socket.id]][roomSequence[socketRoom[socket.id]][data.sequenceNumber]] = 1;
             io.to(socketRoom[socket.id]).emit("LIVE_NUM_GEN_ACK", {
                 curNumGen: roomSequence[socketRoom[socket.id]][data.sequenceNumber],
-                prevNumGen: roomSequence[socketRoom[socket.id]][data.sequenceNumber - 1]
+                prevNumGen: roomSequence[socketRoom[socket.id]][data.sequenceNumber - 1],
+                status : data.sequenceNumber === 90 ? "completed" : "ongoing"
             })
             io.to(socketRoom[socket.id]).emit("BOARD_DATA_ACK", {
                 liveBoardData: roomBoard[socketRoom[socket.id]]

@@ -9,11 +9,15 @@ const useLiveNumGen = () => {
     const [sequenceNumber, setSequenceNumber] = useState(0);
     const [curLiveNumGen, setCurLiveNumGen] = useState();
     const [prevLiveNumGen, setPrevLiveNumGen] = useState();
+    const [boardFinished, setBoardFinished] = useState(false);
 
     const handleLiveBoardSequenceGenAck = (data) => {
         setSequenceNumber(prevSequenceNumber => (prevSequenceNumber + 1));
         setCurLiveNumGen(data.curNumGen);
         setPrevLiveNumGen(data.prevNumGen);
+        setBoardFinished((prevStatus) => {
+            if(data.status !== "ongoing") return true;
+        })
     }
 
     useEffect(() => {
@@ -24,7 +28,7 @@ const useLiveNumGen = () => {
 
     }, [socket])
 
-    return { sequenceNumber, curLiveNumGen, prevLiveNumGen };
+    return { sequenceNumber, curLiveNumGen, prevLiveNumGen, boardFinished };
 }
 
 export default useLiveNumGen;

@@ -9,7 +9,7 @@ const LiveNumDisplay = () => {
 
     const socket = useContext(SocketContext);
     const playerStatus = useContext(PlayerCheckContext);
-    const { curLiveNumGen, prevLiveNumGen, sequenceNumber } = useContext(LiveNumGenContext);
+    const { curLiveNumGen, prevLiveNumGen, sequenceNumber, boardFinished } = useContext(LiveNumGenContext);
 
     const [generateButtonClicked, setGenerateButtonClicked] = useState(false);
     const [switchStateOn, setSwitchStateOn] = useState(false);
@@ -42,17 +42,17 @@ const LiveNumDisplay = () => {
     }, [socket])
 
     // if switch is on then, this hook useInterval sets given amount of interval and also takes care of clearing it.
-    useInterval(handleEmitTimeBasedInterval, switchStateOn ? EMIT_TIME_INTERVAL : null);
+    useInterval(handleEmitTimeBasedInterval, (!boardFinished && switchStateOn) ? EMIT_TIME_INTERVAL : null);
 
     useEffect(() => {
         console.log(switchStateOn);
-        if (generateButtonClicked && !switchStateOn) {
+        if (generateButtonClicked && !switchStateOn && !boardFinished) {
             console.log(1);
             socket.emit("LIVE_NUM_GEN_REQ", {
                 sequenceNumber
             })
         }
-    }, [generateButtonClicked, switchStateOn, socket])
+    }, [generateButtonClicked, switchStateOn, boardFinished, socket])
 
     useEffect(() => {
         setGenerateButtonClicked(false);
@@ -66,8 +66,9 @@ const LiveNumDisplay = () => {
 
     return (
         <>
-            <Typography variant="h2" color="secondary">{curLiveNumGen}</Typography>
-            <Typography variant="h5" color="primary">{prevLiveNumGen}</Typography>
+            {boardFinished && <Typography variant="h2" color="secondary">Game Completed!</Typography>}
+            {!boardFinished && <Typography variant="h2" color="secondary">{curLiveNumGen}</Typography>}
+            {!boardFinished && <Typography variant="h5" color="primary">{prevLiveNumGen}</Typography>}
             {playerStatus === 0 && <Button variant="contained" color="primary" onClick={handleGenerateButtonClicked}>Generate</Button>}
             {playerStatus === 0 && <Switch checked={switchStateOn} onChange={handleSwitchStateChanged} inputProps={{ 'aria-label': 'secondary checkbox' }} />}
         </>
