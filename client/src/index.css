@@ -2,6 +2,7 @@
 
 html, body, #root, .App, .total{
     height: 100%;
+    background-color : #03fc9d;
 }
 
 .main-content {
@@ -37,3 +38,29 @@ html, body, #root, .App, .total{
     opacity: .3;
     transition: 0s;
    }
+
+/* Animation for heading in front page! */
+#main-heading {
+    position: relative;
+    font-family: sans-serif;
+    text-transform: uppercase;
+    font-size: 2em;
+    letter-spacing: 4px;
+    overflow: hidden;
+    background: linear-gradient(90deg, #000, #fff, #000);
+    background-repeat: no-repeat;
+    background-size: 80%;
+    animation: animate 3s linear infinite;
+    background-clip : text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0);
+  }
+  
+@keyframes animate {
+0% {
+    background-position: -500%;
+}
+100% {
+    background-position: 500%;
+}
+}

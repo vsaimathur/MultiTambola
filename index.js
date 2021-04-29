@@ -345,71 +345,20 @@ io.on("connection", (socket) => {
     //It takes host player info. ,creates a new room, joins this host in that room & 
     //emits the randomly generated ROOM_ID to the host player/socket only.
     socket.on("CREATE_ROOM_ID", (data) => {
+        try {
 
-        //random roomID generation
-        randomRoomID = (Math.floor(Math.random() * (MAX_ROOMID_LEN - MIN_ROOMID_LEN + 1))).toString();
-        console.log(randomRoomID);
-        roomSockets[randomRoomID] = [socket.id]
-        socketRoom[socket.id] = randomRoomID;
-        socketNames[socket.id] = data.hostName;
+            //random roomID generation
+            randomRoomID = (Math.floor(Math.random() * (MAX_ROOMID_LEN - MIN_ROOMID_LEN + 1))).toString();
+            console.log(randomRoomID);
+            roomSockets[randomRoomID] = [socket.id]
+            socketRoom[socket.id] = randomRoomID;
+            socketNames[socket.id] = data.hostName;
 
-        //ticket generation for host socket in room.
-        socketTickets[socket.id] = genTickets(data.noTickets);
-
-        //initializing the default points for the player / socket.
-        socketPoints[socket.id] = 5;
-        //initializing room winConditions State.
-        roomWinConditionsAvailableStatus[randomRoomID] = {
-            earlyFive: true,
-            topRow: true,
-            middleRow: true,
-            lastRow: true,
-            fullHousie: true
-        };
-
-        //initializing limitChecker for checking winCondition by player / socket / client.
-        socketWinConditionsCheckLimitCount[socket.id] = {
-            earlyFive: 0,
-            topRow: 0,
-            middleRow: 0,
-            lastRow: 0,
-            fullHousie: 0
-        };
-        roomsAvailable.push(randomRoomID);
-
-        //joining the host socket to created room.
-        socket.join(randomRoomID);
-
-        //emits the generated roomID to host socket.
-        io.to(socket.id).emit("ROOM_ID_GENERATED", {
-            roomID: randomRoomID
-        });
-
-        //we again emit the (updated live rooms available list) to all the clients as new room is added to the list.
-        // console.log(roomSockets,socketRoom,socketNames,socketTickets);
-    })
-
-    //Join room request is handled here when a player clicks join button in Join Room Page
-    //adding the newly joined players to a room & emitting (updated no. of players in room List) to newly joined client & already 
-    //joined client if the room exists else JOIN_ACK 
-    socket.on("JOIN_ROOM_REQ", (data) => {
-        let roomAvailStatusCheck = getRoomAvailableStatus(data.roomID);
-        if (!data.roomID || data.playerName.trim() === "" || !roomAvailStatusCheck) {
-
-            //emitting failed room doesn't exist or not found status only to socket/ client that tried to join.
-            io.to(socket.id).emit("JOIN_ROOM_FAILED");
-        }
-        else {
-            if (roomSockets[data.roomID]) {
-                roomSockets[data.roomID].push(socket.id);
-            }
-            socketNames[socket.id] = data.playerName;
-            socketRoom[socket.id] = data.roomID;
+            //ticket generation for host socket in room.
             socketTickets[socket.id] = genTickets(data.noTickets);
 
             //initializing the default points for the player / socket.
             socketPoints[socket.id] = 5;
-
             //initializing room winConditions State.
             roomWinConditionsAvailableStatus[randomRoomID] = {
                 earlyFive: true,
@@ -419,8 +368,7 @@ io.on("connection", (socket) => {
                 fullHousie: true
             };
 
-
-            //initializing limitChecker for checking winCondition by player / socket / client.    
+            //initializing limitChecker for checking winCondition by player / socket / client.
             socketWinConditionsCheckLimitCount[socket.id] = {
                 earlyFive: 0,
                 topRow: 0,
@@ -428,15 +376,78 @@ io.on("connection", (socket) => {
                 lastRow: 0,
                 fullHousie: 0
             };
-            console.log(roomSockets);
-            socket.join(data.roomID)
+            roomsAvailable.push(randomRoomID);
 
-            io.to(socket.id).emit("JOIN_ROOM_ACK");
-            console.log(getRoomPlayers(data.roomID));
-            //emitting success of socket/client to join the room to all the players in the room by sending updated playernames in room list.
-            io.to(data.roomID).emit("ROOM_PLAYER_NAMES", {
-                roomPlayerNames: getRoomPlayers(data.roomID)
+            //joining the host socket to created room.
+            socket.join(randomRoomID);
+
+            //emits the generated roomID to host socket.
+            io.to(socket.id).emit("ROOM_ID_GENERATED", {
+                roomID: randomRoomID
             });
+
+        } catch (err) {
+            console.log(err);
+        }
+
+        //we again emit the (updated live rooms available list) to all the clients as new room is added to the list.
+        // console.log(roomSockets,socketRoom,socketNames,socketTickets);
+    })
+
+    //Join room request is handled here when a player clicks join button in Join Room Page
+    //adding the newly joined players to a room & emitting (updated no. of players in room List) to newly joined client & already 
+    //joined client if the room exists else JOIN_ACK 
+    socket.on("JOIN_ROOM_REQ", (data) => {
+
+        try {
+            let roomAvailStatusCheck = getRoomAvailableStatus(data.roomID);
+            if (!data.roomID || data.playerName.trim() === "" || !roomAvailStatusCheck) {
+
+                //emitting failed room doesn't exist or not found status only to socket/ client that tried to join.
+                io.to(socket.id).emit("JOIN_ROOM_FAILED");
+            }
+            else {
+                if (roomSockets[data.roomID]) {
+                    roomSockets[data.roomID].push(socket.id);
+                }
+                socketNames[socket.id] = data.playerName;
+                socketRoom[socket.id] = data.roomID;
+                socketTickets[socket.id] = genTickets(data.noTickets);
+
+                //initializing the default points for the player / socket.
+                socketPoints[socket.id] = 5;
+
+                //initializing room winConditions State.
+                roomWinConditionsAvailableStatus[randomRoomID] = {
+                    earlyFive: true,
+                    topRow: true,
+                    middleRow: true,
+                    lastRow: true,
+                    fullHousie: true
+                };
+
+
+                //initializing limitChecker for checking winCondition by player / socket / client.    
+                socketWinConditionsCheckLimitCount[socket.id] = {
+                    earlyFive: 0,
+                    topRow: 0,
+                    middleRow: 0,
+                    lastRow: 0,
+                    fullHousie: 0
+                };
+                console.log(roomSockets);
+                socket.join(data.roomID)
+
+                io.to(socket.id).emit("JOIN_ROOM_ACK");
+                console.log(getRoomPlayers(data.roomID));
+                //emitting success of socket/client to join the room to all the players in the room by sending updated playernames in room list.
+                io.to(data.roomID).emit("ROOM_PLAYER_NAMES", {
+                    roomPlayerNames: getRoomPlayers(data.roomID)
+                });
+
+            }
+        } catch (err) {
+            console.log(err);
         }
 
     })
@@ -460,14 +471,18 @@ io.on("connection", (socket) => {
     })
     //Game Start Is Handled here
     socket.on("GAME_START_REQ", () => {
-        genSequenceBoard(socket);
-        if (roomSockets[socketRoom[socket.id]][0] === socket.id) {
-            io.to(socketRoom[socket.id]).emit("GAME_START_ACK");
+        try {
+            genSequenceBoard(socket);
+            if (roomSockets[socketRoom[socket.id]][0] === socket.id) {
+                io.to(socketRoom[socket.id]).emit("GAME_START_ACK");
+            }
+        } catch (err) {
+            console.log(err);
         }
     })
 
     socket.on("LIVE_NUM_GEN_REQ", (data) => {
-        // try {
+        try {
 
             //recoding the last sequnece number requested by client in a purticular room.
             roomLastSequenceNumberReq[socketRoom[socket.id]] = data.sequenceNumber;
@@ -476,31 +491,40 @@ io.on("connection", (socket) => {
             io.to(socketRoom[socket.id]).emit("LIVE_NUM_GEN_ACK", {
                 curNumGen: roomSequence[socketRoom[socket.id]][data.sequenceNumber],
                 prevNumGen: roomSequence[socketRoom[socket.id]][data.sequenceNumber - 1],
-                status : data.sequenceNumber === 90 ? "completed" : "ongoing"
+                status: data.sequenceNumber === 90 ? "completed" : "ongoing"
             })
             io.to(socketRoom[socket.id]).emit("BOARD_DATA_ACK", {
                 liveBoardData: roomBoard[socketRoom[socket.id]]
             })
 
-        // } catch (err) {
-        //     console.log("Room Sequnece/Board Not yet generated!");
-        // }
+        } catch (err) {
+            console.log("Room Sequnece/Board Not yet generated!");
+        }
     })
 
     socket.on("GET_TICKETS_REQ", () => {
-        io.to(socket.id).emit("GET_TICKETS_ACK", {
-            tickets: socketTickets[socket.id]
-        })
+        try {
+            io.to(socket.id).emit("GET_TICKETS_ACK", {
+                tickets: socketTickets[socket.id]
+            })
+        } catch (err) {
+            console.log(err);
+        }
     })
 
     socket.on("BOARD_DATA_REQ", () => {
-        socketPoints[socket.id] -= 5;
-        io.to(socket.id).emit("BOARD_DATA_ACK", {
-            liveBoardData: roomBoard[socketRoom[socket.id]]
-        })
-        io.to(socket.id).emit("PLAYER_POINTS_ACK", {
-            points: socketPoints[socket.id]
-        })
+
+        try {
+            socketPoints[socket.id] -= 5;
+            io.to(socket.id).emit("BOARD_DATA_ACK", {
+                liveBoardData: roomBoard[socketRoom[socket.id]]
+            })
+            io.to(socket.id).emit("PLAYER_POINTS_ACK", {
+                points: socketPoints[socket.id]
+            })
+        } catch (err) {
+            console.log(err);
+        }
     })
 
     //[***NOT YET USED AS MID CLIENT JOIN FEATURE IS NOT IMPLEMENTED YET] 
@@ -513,7 +537,7 @@ io.on("connection", (socket) => {
     // })
 
     socket.on("WIN_CONDITIONS_CHECK_REQ", (data) => {
-        // try {
+        try {
             io.to(socket.id).emit("WIN_CONDITIONS_CHECK_ACK", {
                 winConditionsAck: checkWinConditions(data.winConditionsCheckReq, data.ticketData, socket),
                 winConditionsCheckLimitCount: socketWinConditionsCheckLimitCount[socket.id]
@@ -530,15 +554,19 @@ io.on("connection", (socket) => {
                 curWinConditionsAvailable: getWinConditionsAvailableStatusNames(socketRoom[socket.id]),
                 lastWinConditionUpdated: roomLastWinConditionUpdated[socketRoom[socket.id]]
             })
-        // } catch (err) {
-        //     console.log("Socket/ client didn't join any room yet");
-        // }
+        } catch (err) {
+            console.log("Socket/ client didn't join any room yet");
+        }
     });
 
     socket.on("GET_FINAL_PLAYERS_POINTS_REQ", () => {
-        io.to(socketRoom[socket.id]).emit("GET_FINAL_PLAYERS_POINTS_ACK", {
-            finalPlayersPoints : getFinalPodiumPlayersPoints()
-        })
+        try {
+            io.to(socketRoom[socket.id]).emit("GET_FINAL_PLAYERS_POINTS_ACK", {
+                finalPlayersPoints: getFinalPodiumPlayersPoints()
+            })
+        } catch (err) {
+            console.log(err);
+        }
     })
 
     socket.on("disconnect", () => {
@@ -569,6 +597,7 @@ io.on("connection", (socket) => {
                 delete roomSequence[socketRoom[socket.id]];
                 delete roomLastSequenceNumberReq[socketRoom[socket.id]];
                 delete roomSockets[socketRoom[socket.id]];
+                delete roomLastWinConditionUpdated[socketRoom[socket.id]];
                 // not deleting roomWinConditionsAvailableStatus for a room just to preserve the gameState of room for future use
                 // delete roomWinConditionsAvailableStatus[socketRoom[socket.id]];
                 roomsAvailable.filter((roomID) => roomID !== socketRoom[socket.id]);
@@ -629,7 +658,7 @@ server.listen(PORT, () => {
 // resolve big about the last number in board.
 //need to fix footer issue in mobile (sometimes also pc) (todo later)
 //player / host leave -> game restore (todo later)
-
+//need to write static html files for display of website.[✔]
 
 //** Problems & Temp Sol'n: */
 

@@ -3,7 +3,7 @@ import Button from '@material-ui/core/Button';
 import {useHistory} from 'react-router-dom';
 
 const rootStyles = {
-    height : "100%",
+    minHeight : "100%",
     display : "grid",
     gridTemplateRows : "10% auto"
 
