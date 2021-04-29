@@ -62,7 +62,7 @@ const socket_io = require("socket.io");
 const { generateKeyPair } = require("crypto")
 const io = socket_io(server, {
     cors: {
-        origin: "http://127.0.0.1:5000",
+        origin: process.env.SERVER_URL || "http://127.0.0.1:5000",
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -614,14 +614,14 @@ io.on("connection", (socket) => {
 
 });
 
+
+if(process.env.NODE_ENV = "Production") {
+    app.use(express.static("client/build"));
+}
+
 app.get("/", (req, res) => {
     res.send("This is start of Tambola Application!");
 });
-
-
-// if(process.env.NODE_ENV = "Production") {
-//     app.use(express.static("client/build"));
-// }
 
 server.listen(PORT, () => {
     console.log(`Server is listening on ${PORT}`);
