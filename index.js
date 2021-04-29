@@ -62,7 +62,7 @@ const socket_io = require("socket.io");
 const { generateKeyPair } = require("crypto")
 const io = socket_io(server, {
     cors: {
-        origin: process.env.SERVER_URL || "http://127.0.0.1:5000",
+        origin: "https://multi-tambola.herokuapp.com",
         methods: ["GET", "POST"],
         credentials: true
     }
