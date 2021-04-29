@@ -615,7 +615,7 @@ io.on("connection", (socket) => {
 });
 
 
-if(process.env.NODE_ENV = "Production") {
+if(process.env.NODE_ENV === "Production") {
     app.use(express.static("client/build"));
 }
 
