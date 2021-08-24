@@ -14,7 +14,7 @@ const Header = () => {
                 <Nav className="mr-auto">
                     <div className="mr-auto"><Button onClick={() => history.push("/")}><Nav.Link>Home</Nav.Link></Button></div>
                     <div className="mr-auto"><Button onClick={() => history.push("/rules")}><Nav.Link>Rules</Nav.Link></Button></div>
-                    <div className="mr-auto"><Button onClick={() => window.location = "https://multi-tambola.herokuapp.com/play"}><Nav.Link>Play</Nav.Link></Button></div>
+                    <div className="mr-auto"><Button onClick={() => {history.push("/play"); history.go(0);}}><Nav.Link>Play</Nav.Link></Button></div>
                     <div className="mr-auto"><Button onClick={() => history.push("/support")}><Nav.Link>Support</Nav.Link></Button></div>
                 </Nav>
 
