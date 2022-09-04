@@ -1,4 +1,3 @@
-
 var roomSockets = {}; // {roomNo : [socket1ID,socket2ID]}
 var socketRoom = {}; // {socketID : RoomID}
 var socketNames = {}; //{socketID : Name}
@@ -55,7 +54,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
+app.use(express.static("build"));
 
 const server = require("http").createServer(app);
 const socket_io = require("socket.io");
@@ -618,10 +617,6 @@ io.on("connection", (socket) => {
 if(process.env.NODE_ENV === "Production") {
     app.use(express.static("client/build"));
 }
-
-app.get("/", (req, res) => {
-    res.send("This is start of Tambola Application!");
-});
 
 server.listen(PORT, () => {
     console.log(`Server is listening on ${PORT}`);
